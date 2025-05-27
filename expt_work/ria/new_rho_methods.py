@@ -15,13 +15,11 @@ def min_W(x0, expt, bounds, counts, W):
     Returns a scipy object that has the function that gets minimized
     and the params used to minimize
     '''
-    if expt:
-        arr = get_nom
-        args = (counts, W)
+    if expt and counts is not None:
+        do_min = minimize(get_nom, x0=x0, args=(counts, W), bounds=bounds)
     else:
-        arr = W
-        args = (counts,)
-    return minimize(arr, x0=x0, args=args, bounds=bounds)
+        do_min = minimize(W, x0=x0, bounds=bounds)
+    return(do_min)
 
 def min_W_val(x0, expt, bounds, counts, W):
             # returns minimum expectation value of W
@@ -57,14 +55,14 @@ class InitGuess:
             self.bounds = [(0, np.pi)]
             self.x0 = [np.random.rand()*np.pi]
         elif num_params == 3:
-            self.bounds = [(0, np.pi/2),(0, np.pi*2), (0, np.pi*2)]
+            self.bounds = [(0, np.pi/2), (0, np.pi*2), (0, np.pi*2)]
             self.x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi, np.random.rand()*2*np.pi]
         else: 
-            self.bounds = [(0, np.pi/2),(0, np.pi*2)]
+            self.bounds = [(0, np.pi/2), (0, np.pi*2)]
             self.x0 = [np.random.rand()*np.pi/2, np.random.rand()*2*np.pi]
         # using scipy minimization
-        self.w_min_val = min_W_val(self.x0, expt, self.bounds, counts, W)
-        self.w_min_params = min_W_params(self.x0, expt, self.bounds, counts, W)
+        self.w_min_val = min_W(self.x0, expt, self.bounds, counts, W).fun
+        self.w_min_params = min_W(self.x0, expt, self.bounds, counts, W).x
 
     # "magic methods" help us compare instances of a class
     def __eq__(self, other):
@@ -104,14 +102,14 @@ def gradient_descent(guess, num_params, expt, counts, W, zeta=0.7, num_reps = 50
             new_guess = InitGuess(num_params, expt, counts, W)
             x0 = new_guess.x0
         else:
-            grad = approx_fprime(guess.x0, min_W_val, 1e-6)
+            grad = approx_fprime(guess.x0, min_W_val, epsilon=1e-6)
             if np.all(grad < 1e-5*np.ones(len(grad))):
                 break
             else:
                 x0 = x0 - zeta*grad
 
-        w_val = min_W_val(x0, expt, bounds, counts, W)
-        w_params = min_W_params(x0, expt, bounds, counts, W)
+        w_val = min_W(x0, expt, bounds, counts, W).fun
+        w_params = min_W(x0, expt, bounds, counts, W).x
                         
         if w_val < w_min_val:
             w_min_val = w_val
@@ -354,7 +352,7 @@ def compute_witnesses(rho, counts = None, expt = False, verbose = True, do_count
         def get_W1(param):
             a,b = np.cos(param), np.sin(param)
             phi1 = a*PHI_P + b*PHI_M
-            return get_W_matrix(phi1)
+            return get_witness(phi1)
         def get_W2(param):
             a,b = np.cos(param), np.sin(param)
             phi2 = a*PSI_P + b*PSI_M
