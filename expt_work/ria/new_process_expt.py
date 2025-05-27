@@ -7,16 +7,15 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import random
+from scipy.optimize import curve_fit
+import scipy.linalg as la
 
 from uncertainties import ufloat
 from uncertainties import unumpy as unp
 
-from rho_methods import *
-from sample_rho import *
-
 # import Isabel & Brayden's files
-#import operations as op
-#import states_and_witnesses as sw
+import operations as op
+import states_and_witnesses as sw
 
 # set path & other user input variables
 current_path = dirname(abspath(__file__))
@@ -82,6 +81,80 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
     return trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc
 
+def adjust_rho(rho, expt_purity, state = 'E0'):
+    ''' Adjusts theo density matrix to account for experimental impurity
+        Multiplies unwanted experimental impurities (top right bottom right block) by expt purity to account for 
+        non-entangled particles in our system '''
+    if state == 'E0':
+        for i in range(rho.shape[0]):
+            for j in range(rho.shape[1]):
+                if i < 3:
+                    if j < 3:
+                        pass
+                if i > 2:
+                    if j > 2:
+                        pass
+                else:
+                    rho[i][j] = expt_purity * rho[i][j]
+    return rho
+
+def get_fidelity(rho1, rho2):
+    '''Compute fidelity of 2 density matrices'''
+    try:
+        fidelity = np.real((np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1))))**2)
+        return fidelity
+    except:
+        print('error computing fidelity!')
+        print('rho1', rho1)
+        print('rho2', rho2)
+        return 1e-5
+
+def parse_W_ls(W_params, W_vals):
+            """
+            A function to parse the lists of outputs from minimize_witnesses.
+            Inputs:
+                W_params: a list of the parameters used to minimize each witness.
+                W_vals: a list of the minimum expectation value of each witness.
+            """
+            W_names = ['W3_1','W3_2', 'W3_3', 'W3_4', 'W3_5', 'W3_6', 'W5_1', 'W5_2', 'W5_3', 'W5_4', 'W5_5', 'W5_6', 'W5_7', 'W5_8', 'W5_9']
+
+            # Map the names of the W3s to their minimum expectation values
+            W3_vals_dict = dict(zip(W_names[:6], W_vals[:6]))
+            W3_params_dict = dict(zip(W_names[:6], W_params[:6]))
+
+            # Search the dictionary for the minimum W3 and save its name, expec. value, and minimization param
+            W3_name = min(W3_vals_dict, key=W3_vals_dict.get)
+            W3_min = W3_vals_dict[W3_name]
+            W3_param = W3_params_dict[W3_name]
+
+            # Creating W5 dictionaries
+            # Triplet 1
+            W5t1_vals_dict = dict(zip(W_names[6:9], W_vals[6:9]))
+            W5t1_params_dict = dict(zip(W_names[6:9], W_params[6:9]))
+
+            #Triplet 2
+            W5t2_vals_dict = dict(zip(W_names[9:12], W_vals[9:12]))
+            W5t2_params_dict = dict(zip(W_names[9:12], W_params[9:12]))
+
+            #Triplet 3
+            W5t3_vals_dict = dict(zip(W_names[12:15], W_vals[12:15]))
+            W5t3_params_dict = dict(zip(W_names[12:15], W_params[12:15]))
+
+            # Finding the minimum for each W5 triplet
+            W5_t1_name = min(W5t1_vals_dict, key=W5t1_vals_dict.get)
+            W5_t1_min = W5t1_vals_dict[W5_t1_name]
+            W5_t1_param = W5t1_params_dict[W5_t1_name]
+
+            W5_t2_name = min(W5t2_vals_dict, key=W5t2_vals_dict.get)
+            W5_t2_min = W5t2_vals_dict[W5_t2_name]
+            W5_t2_param = W5t2_params_dict[W5_t2_name]
+
+            W5_t3_name = min(W5t3_vals_dict, key=W5t3_vals_dict.get)
+            W5_t3_min = W5t3_vals_dict[W5_t3_name]
+            W5_t3_param = W5t3_params_dict[W5_t3_name]
+
+            return W3_min, W5_t1_min, W5_t2_min, W5_t3_min, W3_name, W5_t1_name, W5_t2_name, W5_t3_name, W3_param, W5_t1_param, W5_t2_param, W5_t3_param
+
 def analyze_rhos(filenames, rho_actuals, id='id'):
     '''Extending get_rho_from_file to include multiple files; 
     __
@@ -115,43 +188,27 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print(np.round(rho, 3))
         
         # calculate W and W' theory
-        #theory_Ws = sw.W5(rho=rho)
-        #W_T_ls = theory_Ws.get_witnesses()
-        W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
-        print("W_T_ls computed")
-        W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.95), verbose = True) # adjusted theory
-        print("W_AT_ls computed")
+        W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
+        print("Theory Ws computed")
+        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, [eta, chi], 0.95))
+        print("Adjusted theory Ws computed")
         # calculate W and W' expt
-        W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
-        print("W_expt_ls computed")
+        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho, counts=unp.uarray(un_proj, un_proj_unc))
+        print("Experimental Ws computed")
         
-        # parse lists
-        W_min_T = W_T_ls[0]
-        Wp_t1_T = W_T_ls[1]
-        Wp_t2_T = W_T_ls[2]
-        Wp_t3_T = W_T_ls[3]
-        W_name_T = W_T_ls[4]
-        Wp1_name_T = W_T_ls[5]
-        Wp2_name_T = W_T_ls[6]
-        Wp3_name_T = W_T_ls[7]
-        W_param_T = W_T_ls[8]
-        Wp1_param_T = W_T_ls[9]
-        Wp2_param_T = W_T_ls[10]
-        Wp3_param_T = W_T_ls[11]
-        #print('The minimized first triplet W prime is:', Wp1_name_T)
-        # ---- #
-        # not returning params for adjusted theory at the moment
-        W_min_AT = W_AT_ls[0]
-        Wp_t1_AT = W_AT_ls[1]
-        Wp_t2_AT = W_AT_ls[2]
-        Wp_t3_AT = W_AT_ls[3]
-        W_name_AT = W_AT_ls[4]
-        Wp1_name_AT = W_AT_ls[5]
-        Wp2_name_AT = W_AT_ls[6]
-        Wp3_name_AT = W_AT_ls[7]
+        ## PARSE LISTS ##
+        # Theoretical data
+        W_min_T, Wp_t1_T, Wp_t2_T, Wp_t3_T, W_name_T, Wp1_name_T, Wp2_name_T, Wp3_name_T, W_param_T, Wp1_param_T, Wp2_param_T, Wp3_param_T = parse_W_ls(W_T_params, W_T_vals)
         
-        # ---- #
-        # using propogated uncertainty
+        # Adjusted theory: not returning params
+        W_min_AT, Wp_t1_AT, Wp_t2_AT, Wp_t3_AT, W_name_AT, Wp1_name_AT, Wp2_name_AT, Wp3_name_AT = parse_W_ls(W_AT_params, W_AT_vals)
+        
+        print('The minimized first triplet W5 is:', Wp1_name_T)
+        print('The minimized second triplet W5 is:', Wp2_name_T)
+        print('The minimized third triplet W5 is:', Wp3_name_T)
+
+        W_expt_ls = [parse_W_ls(W_E_params, W_E_vals)]
+        # using propagated uncertainty
         try: # handle the observed difference in python 3.9.7 and 3.10
             W_min_expt = unp.nominal_values(W_expt_ls[0][0][0])
             W_min_unc = unp.std_devs(W_expt_ls[0][0][0])
@@ -183,7 +240,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         #print('Experimental Ws:', W_name_expt, W_min_expt,  Wp1_name_expt, Wp_t1_expt, Wp2_name_expt, Wp_t2_expt, Wp3_name_expt, Wp_t3_expt)
         #print()
         if eta is not None and chi is not None:
-            adj_fidelity= get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
+            adj_fidelity = get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
 
             df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity,
             'W_min_T': W_min_T, 'Wp_t1_T':Wp_t1_T, 'Wp_t2_T':Wp_t2_T, 'Wp_t3_T':Wp_t3_T,'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
