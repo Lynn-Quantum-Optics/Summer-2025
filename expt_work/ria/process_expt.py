@@ -9,7 +9,6 @@ update the path variables to search for them. This file no longer depends on rho
 To run this file, you don't need to copy or edit it. Simply run it and fill in the user inputs as prompted
 in your command line.
 """
-# file to read and process experimentally collected density matrices
 
 import numpy as np
 from os.path import join, dirname, abspath
