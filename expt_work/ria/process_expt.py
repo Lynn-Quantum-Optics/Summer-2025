@@ -3,12 +3,15 @@ Authors: Lev G., Isabel G.
 Last updated: 5/28/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
-states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory or
-update the path variables to search for them. This file no longer depends on rho_methods.py or sample_rho.py.
+states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
+or update the path variables to import them. This file no longer depends on rho_methods.py or
+sample_rho.py.
 
-To run this file, you don't need to copy or edit it. Simply run it and fill in the user inputs as prompted
-in your command line.
+To run this file, you don't need to copy or edit it. Simply run it and fill in the user inputs as
+prompted in your command line.
 """
+
+print("initializing...")
 
 # Silence TensorFlow warnings that make it hard to read outputs of this file
 import os
@@ -30,22 +33,6 @@ from uncertainties import unumpy as unp
 # import Isabel & Brayden's files
 import states_and_witnesses as sw
 import operations as op
-
-# set path & other user input variables
-current_path = dirname(abspath(__file__))
-DATA_PATH = input('Input the path to the lowest-level directory that your data file is in: ')
-TRIAL = int(input("Trial number: "))
-STATE_ID = input("State name: ")
-
-chis_range = input("Are you analyzing the full range of chi values? [y/n]: ")
-if chis_range.lower() == "y":
-    chis = np.linspace(0.001, np.pi/2, 6)
-else:
-    chis_str = input("Which chi value do you want to test (must be in radians; e.g. 'np.pi/2')?\nType nothing and hit ENTER to assign a default value of pi/2 radians: ")
-    if chis_str == "":
-        chis = [np.pi/2]
-    else:
-        chis = [eval(chis_str)]
 
 def get_rho_from_file(filename, verbose=True, angles=None):
     '''Function to read in experimental density matrix from file. For trials > 14. N.b. up to trial 23,
@@ -76,7 +63,6 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
     # read in data
     rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
-    ## update df with info about this trial ##
     trial, chi = split_filename()
     
     # print results
@@ -90,8 +76,8 @@ def get_rho_from_file(filename, verbose=True, angles=None):
         print('fidelity', fidelity)
         print('purity', purity)
 
-        print('trace of measublue rho', np.trace(rho))
-        print('eigenvalues of measublue rho', np.linalg.eigvals(rho))
+        print('trace of measured rho:', np.trace(rho))
+        print('eigenvalues of measured rho:', np.linalg.eigvals(rho))
 
     return trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc
 
@@ -509,6 +495,22 @@ def get_theo_rho(state, chi):
     return rho
 
 if __name__ == '__main__':
+    # set path & other user input variables
+    current_path = dirname(abspath(__file__))
+    DATA_PATH = input('Input the path to the lowest-level directory that your data file is in: ')
+    TRIAL = int(input("Trial number: "))
+    STATE_ID = input("State name: ")
+
+    chis_range = input("Are you analyzing the full range of chi values? [y/n]: ")
+    if chis_range.lower() == "y":
+        chis = np.linspace(0.001, np.pi/2, 6)
+    else:
+        chis_str = input("Which chi value do you want to test (must be in radians; e.g. 'np.pi/2')?\nType nothing and hit ENTER to assign a default value of pi/2 radians: ")
+        if chis_str == "":
+            chis = [np.pi/2]
+        else:
+            chis = [eval(chis_str)]
+
     rho_actuals = []
     filenames = []
     rho_actuals = []
