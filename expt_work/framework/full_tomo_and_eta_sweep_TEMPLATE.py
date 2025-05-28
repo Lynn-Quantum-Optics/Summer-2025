@@ -3,7 +3,6 @@ import numpy as np
 import scipy.optimize as opt
 from full_tomo_updated_richard import get_rho
 from analysis_old import *
-from rho_methods import get_fidelity, get_purity
 import pandas as pd
 
 def ket(data):
@@ -24,6 +23,21 @@ def get_theo_rho(chi):
 
     return rho
 
+def get_purity(rho):
+    ''' Calculates the purity of a density matrix. '''
+    return np.real(np.trace(rho @ rho))
+
+def get_fidelity(rho1, rho2):
+    '''Compute fidelity of 2 density matrices'''
+    try:
+        fidelity = np.real((np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1))))**2)
+        return fidelity
+    except:
+        print('error computing fidelity!')
+        print('rho1', rho1)
+        print('rho2', rho2)
+        return 1e-5
+    
 if __name__ == '__main__':
     #TODO: Change these
     basisName = "hr_negpi_6_vl"
