@@ -1,3 +1,14 @@
+"""
+Authors: Lev G., Isabel G.
+Last updated: 5/28/2025
+
+This file reads and processes experimentally collected density matrices using functionality from
+states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory or
+update the path variables to search for them. This file no longer depends on rho_methods.py or sample_rho.py.
+
+To run this file, you don't need to copy or edit it. Simply run it and fill in the user inputs as prompted
+in your command line.
+"""
 # file to read and process experimentally collected density matrices
 
 import numpy as np
@@ -406,14 +417,14 @@ def create_noise(rho, power):
 
 def get_theo_rho(state, chi):
     '''
-    Calculates the density matrix (rho) for a given set of paramters (eta, chi) for Stuart's states
+    Calculates the density matrix (rho) for a given set of parameters (eta, chi) for Stuart's states
     
     Parameters:
-    state (string): Which state we want
-    chi (float): The parameter chi.
+    state (string): The name of the state we are analyzing
+    chi (float): The parameter chi
     
     Returns:
-    numpy.ndarray: The density matrix (rho)
+    rho (numpy.ndarray): The density matrix
     '''
     # Define kets and bell states in vector form 
     H = ket([1,0])
