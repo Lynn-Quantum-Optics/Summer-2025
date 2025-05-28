@@ -202,8 +202,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # Theoretical data
         W_min_T, Wp_t1_T, Wp_t2_T, Wp_t3_T, W_name_T, Wp1_name_T, Wp2_name_T, Wp3_name_T, W_param_T, Wp1_param_T, Wp2_param_T, Wp3_param_T = parse_W_ls(W_T_params, W_T_vals)
         
-        # Adjusted theory
-        # TODO: why don't we return params?
+        # Adjusted theory: params are not returned
         W_min_AT, Wp_t1_AT, Wp_t2_AT, Wp_t3_AT, W_name_AT, Wp1_name_AT, Wp2_name_AT, Wp3_name_AT, _, _, _, _ = parse_W_ls(W_AT_params, W_AT_vals)
         
         print('The minimized first triplet W5 is:', Wp1_name_T)
@@ -211,14 +210,10 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print('The minimized third triplet W5 is:', Wp3_name_T)
 
         W_expt_ls = list(parse_W_ls(W_E_params, W_E_vals))
+
         # using propagated uncertainty
-        # TODO: fix this--how to propagate uncertainty, remember all list items are scalar
-        try: # handle the observed difference in python 3.9.7 and 3.10
-            W_min_expt = unp.nominal_values(W_expt_ls[0][0][0])
-            W_min_unc = unp.std_devs(W_expt_ls[0][0][0])
-        except: 
-            W_min_expt = unp.nominal_values(W_expt_ls[0][0])
-            W_min_unc = unp.std_devs(W_expt_ls[0][0])
+        W_min_expt = unp.nominal_values(W_expt_ls[0])
+        W_min_unc = unp.std_devs(W_expt_ls[0])
         Wp_t1_expt = unp.nominal_values(W_expt_ls[1])
         Wp_t1_unc = unp.std_devs(W_expt_ls[1])
         Wp_t2_expt = unp.nominal_values(W_expt_ls[2])
@@ -233,16 +228,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         Wp1_param_expt = W_expt_ls[9]
         Wp2_param_expt = W_expt_ls[10]
         Wp3_param_expt = W_expt_ls[11]
-    
-        #print('THE CURRENT POINT IS POINT:', i)
-        #print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
-        # # print('Experimental Ws:', W_name_expt, W_min_expt, W_param_expt, Wp1_name_expt, Wp_t1_expt, Wp1_param_expt, Wp2_name_expt, Wp_t2_expt, Wp2_param_expt, Wp3_name_expt, Wp_t3_expt, Wp3_param_expt)
 
-        #print('Theoretical rho is:', rho_actual)
-        #print('Actual rho is:', rho)
-        #print('With W/W primes of:', W_name_T, W_min_T, Wp1_name_T, Wp_t1_T, Wp2_name_T, Wp_t2_T, Wp3_name_T, Wp_t3_T)
-        #print('Experimental Ws:', W_name_expt, W_min_expt,  Wp1_name_expt, Wp_t1_expt, Wp2_name_expt, Wp_t2_expt, Wp3_name_expt, Wp_t3_expt)
-        #print()
         if eta is not None and chi is not None:
             adj_fidelity = get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
 
@@ -253,7 +239,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
             df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'fidelity':fidelity, 'purity':purity, 'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
 
     # save df
-    print('saving!')
+    print('saving dataframe...')
     df.to_csv(join(DATA_PATH, f'analysis_{id}.csv'))
 
 def make_plots_E0(dfname):
@@ -262,7 +248,7 @@ def make_plots_E0(dfname):
     dfname: str, name of df to read in
     num_plots: int, number of separate plots to make (based on eta)
     '''
-    print("plotting!")
+    print("plotting...")
     id = dfname.split('.')[0].split('_')[-1] # extract identifier from dfname
 
     # read in df
