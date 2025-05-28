@@ -14,8 +14,8 @@ from uncertainties import ufloat
 from uncertainties import unumpy as unp
 
 # import Isabel & Brayden's files
-import operations as op
 import states_and_witnesses as sw
+import operations as op
 
 # set path & other user input variables
 current_path = dirname(abspath(__file__))
@@ -193,22 +193,26 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, [eta, chi], 0.95))
         print("Adjusted theory Ws computed")
         # calculate W and W' expt
-        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho, counts=unp.uarray(un_proj, un_proj_unc))
+        # TODO: assertion error when giving rho & counts, just giving counts causes index error
+        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
+        # W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho, counts=unp.uarray(un_proj, un_proj_unc))
         print("Experimental Ws computed")
         
         ## PARSE LISTS ##
         # Theoretical data
         W_min_T, Wp_t1_T, Wp_t2_T, Wp_t3_T, W_name_T, Wp1_name_T, Wp2_name_T, Wp3_name_T, W_param_T, Wp1_param_T, Wp2_param_T, Wp3_param_T = parse_W_ls(W_T_params, W_T_vals)
         
-        # Adjusted theory: not returning params
-        W_min_AT, Wp_t1_AT, Wp_t2_AT, Wp_t3_AT, W_name_AT, Wp1_name_AT, Wp2_name_AT, Wp3_name_AT = parse_W_ls(W_AT_params, W_AT_vals)
+        # Adjusted theory
+        # TODO: why don't we return params?
+        W_min_AT, Wp_t1_AT, Wp_t2_AT, Wp_t3_AT, W_name_AT, Wp1_name_AT, Wp2_name_AT, Wp3_name_AT, _, _, _, _ = parse_W_ls(W_AT_params, W_AT_vals)
         
         print('The minimized first triplet W5 is:', Wp1_name_T)
         print('The minimized second triplet W5 is:', Wp2_name_T)
         print('The minimized third triplet W5 is:', Wp3_name_T)
 
-        W_expt_ls = [parse_W_ls(W_E_params, W_E_vals)]
+        W_expt_ls = list(parse_W_ls(W_E_params, W_E_vals))
         # using propagated uncertainty
+        # TODO: fix this--how to propagate uncertainty, remember all list items are scalar
         try: # handle the observed difference in python 3.9.7 and 3.10
             W_min_expt = unp.nominal_values(W_expt_ls[0][0][0])
             W_min_unc = unp.std_devs(W_expt_ls[0][0][0])
