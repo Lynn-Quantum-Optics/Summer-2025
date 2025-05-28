@@ -194,8 +194,11 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Adjusted theory Ws computed")
         # calculate W and W' expt
         # TODO: assertion error when giving rho & counts, just giving counts causes index error
-        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
-        # W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho, counts=unp.uarray(un_proj, un_proj_unc))
+        # the line below works, but doesn't give uncertainties
+        # W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
+        flat_un_proj = un_proj.flatten()
+        flat_un_proj_unc = un_proj_unc.flatten()
+        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
         print("Experimental Ws computed")
         
         ## PARSE LISTS ##
@@ -204,22 +207,27 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         
         # Adjusted theory: params are not returned
         W_min_AT, Wp_t1_AT, Wp_t2_AT, Wp_t3_AT, W_name_AT, Wp1_name_AT, Wp2_name_AT, Wp3_name_AT, _, _, _, _ = parse_W_ls(W_AT_params, W_AT_vals)
-        
-        print('The minimized first triplet W5 is:', Wp1_name_T)
-        print('The minimized second triplet W5 is:', Wp2_name_T)
-        print('The minimized third triplet W5 is:', Wp3_name_T)
 
+        # Experimental data
         W_expt_ls = list(parse_W_ls(W_E_params, W_E_vals))
 
         # using propagated uncertainty
         W_min_expt = unp.nominal_values(W_expt_ls[0])
         W_min_unc = unp.std_devs(W_expt_ls[0])
+        print("Experimental W3 minimum value:", W_min_expt)
+        print("Uncertainty:", W_min_unc)
         Wp_t1_expt = unp.nominal_values(W_expt_ls[1])
         Wp_t1_unc = unp.std_devs(W_expt_ls[1])
+        print("Experimental W5 triplet 1 minimum value:", Wp_t1_expt)
+        print("Uncertainty:", Wp_t1_unc)
         Wp_t2_expt = unp.nominal_values(W_expt_ls[2])
         Wp_t2_unc = unp.std_devs(W_expt_ls[2])
+        print("Experimental W5 triplet 2 minimum value:", Wp_t2_expt)
+        print("Uncertainty:", Wp_t2_unc)
         Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
+        print("Experimental W5 triplet 3 minimum value:", Wp_t3_expt)
+        print("Uncertainty:", Wp_t3_unc)
         W_name_expt = W_expt_ls[4]
         Wp1_name_expt = W_expt_ls[5]
         Wp2_name_expt = W_expt_ls[6]
