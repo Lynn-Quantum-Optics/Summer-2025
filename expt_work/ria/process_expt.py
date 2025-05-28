@@ -10,6 +10,10 @@ To run this file, you don't need to copy or edit it. Simply run it and fill in t
 in your command line.
 """
 
+# Silence TensorFlow warnings that make it hard to read outputs of this file
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 import numpy as np
 from os.path import join, dirname, abspath
 import pandas as pd
@@ -37,7 +41,7 @@ chis_range = input("Are you analyzing the full range of chi values? [y/n]: ")
 if chis_range.lower() == "y":
     chis = np.linspace(0.001, np.pi/2, 6)
 else:
-    chis_str = input("Which chi value do you want to test (must be in radians; e.g. 'np.pi/2')? Type nothing and hit ENTER to assign a default value of pi/2 radians: ")
+    chis_str = input("Which chi value do you want to test (must be in radians; e.g. 'np.pi/2')?\nType nothing and hit ENTER to assign a default value of pi/2 radians: ")
     if chis_str == "":
         chis = [np.pi/2]
     else:
@@ -184,7 +188,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
     '''
     # initialize df
     df = pd.DataFrame()
-    eta = 45.0 # legacy, reformat for no eta with new rho methods file
+    eta = 45.0 # TODO: reformat for no eta with new rho methods file
 
     for i, file in tqdm(enumerate(filenames)):
         trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
