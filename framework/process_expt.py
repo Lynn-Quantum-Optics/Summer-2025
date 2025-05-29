@@ -81,27 +81,26 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
     return trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc
 
-def adjust_rho(rho, expt_purity, state = 'E0'):
+def adjust_rho(rho, expt_purity):
     ''' Adjusts theo density matrix to account for experimental impurity
-        Multiplies unwanted experimental impurities (top right bottom right block) by expt purity to account for 
-        non-entangled particles in our system '''
-    if state == 'E0':
-        for i in range(rho.shape[0]):
-            for j in range(rho.shape[1]):
-                if i < 3:
-                    if j < 3:
-                        pass
-                if i > 2:
-                    if j > 2:
-                        pass
-                else:
-                    rho[i][j] = expt_purity * rho[i][j]
+        Multiplies unwanted experimental impurities (top right bottom right block) by expt purity
+        to account for non-entangled particles in our system '''
+    for i in range(rho.shape[0]):
+        for j in range(rho.shape[1]):
+            if i < 3:
+                if j < 3:
+                    pass
+            if i > 2:
+                if j > 2:
+                    pass
+            else:
+                rho[i][j] = expt_purity * rho[i][j]
     return rho
 
 def get_fidelity(rho1, rho2):
     '''Compute fidelity of 2 density matrices'''
     try:
-        fidelity = np.real((np.trace(la.sqrtm(la.sqrtm(rho1)@rho2@la.sqrtm(rho1))))**2)
+        fidelity = np.real((np.trace(la.sqrtm(la.sqrtm(rho1) @ rho2 @ la.sqrtm(rho1))))**2)
         return fidelity
     except:
         print('error computing fidelity!')
@@ -190,11 +189,12 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # calculate W and W' theory
         W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
         print("Theory Ws computed")
-        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, [eta, chi], 0.95))
+        # TODO: is purity the same as expt_purity? Where to get expt_purity?
+        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, 0.95))
         print("Adjusted theory Ws computed")
         # calculate W and W' expt
         # TODO: assertion error when giving rho & counts, just giving counts causes index error
-        # the line below works, but doesn't give uncertainties
+        # the commented line below works, but doesn't give uncertainties
         # W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
@@ -379,7 +379,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
             
-    plt.suptitle('Entangled State Witnessed by 2nd W\' Triplet', fontsize=25)
+    plt.suptitle('Entangled State Witnessed by 2nd W5 Triplet', fontsize=25)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{id}.pdf'))
     plt.show()
@@ -494,6 +494,9 @@ def get_theo_rho(state, chi):
     
     if state == 'hd_negpi_3_va':
         phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, A)
+
+    if state == 'hr_negpi_6_vl':
+        phi = np.cos(chi/2) * np.kron(H, R) + np.exp(-1j * np.pi/6) * np.sin(chi/2) * np.kron(V, L)
 
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
