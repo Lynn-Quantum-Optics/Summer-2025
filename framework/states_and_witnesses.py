@@ -154,7 +154,7 @@ class W3:
         self.counts = counts
             
         # counts not given, so we want to use the given theoretical rho
-        if not counts:
+        if counts is None:
             assert rho is not None, "ERROR: counts not given, so rho should be given"
             self.rho = rho
 
