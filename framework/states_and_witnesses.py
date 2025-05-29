@@ -109,6 +109,15 @@ PAULI_Y = np.array([[0, -1j], [1j, 0]])
 PAULI_Z = np.array([[1,0], [0,-1]])
 IDENTITY = np.array([[1,0], [0,1]])
 
+# Get tensor'd Pauli matrices
+PAULI = [np.kron(IDENTITY, IDENTITY), np.kron(IDENTITY, PAULI_X), np.kron(IDENTITY, PAULI_Y),
+            np.kron(IDENTITY, PAULI_Z), np.kron(PAULI_X, IDENTITY), np.kron(PAULI_X, PAULI_X),
+            np.kron(PAULI_X, PAULI_Y), np.kron(PAULI_X, PAULI_Z), np.kron(PAULI_Y, IDENTITY),
+            np.kron(PAULI_Y, PAULI_X), np.kron(PAULI_Y, PAULI_Y), np.kron(PAULI_Y, PAULI_Z), 
+            np.kron(PAULI_Z, IDENTITY), np.kron(PAULI_Z, PAULI_X), np.kron(PAULI_Z, PAULI_Y), 
+            np.kron(PAULI_Z, PAULI_Z)
+        ]
+
 ### Rotation Matrices ###
 #
 # Params: 
@@ -187,7 +196,10 @@ class W3:
 
             # calculate experimental density matrix
             # NOTE: doesn't necessarily represent a full state
-            self.rho = self.expt_rho()
+            
+            # commented out line below because of uncertainty issue when dealing with complex rho
+            # TODO: decide if we want to calculate expt_rho at all?
+            # self.rho = self.expt_rho()
 
 
     ##################################
@@ -206,7 +218,7 @@ class W3:
         b = np.sin(theta)
 
         # For experimental data, ensure we have the necessary counts
-        if self.counts:
+        if self.counts is not None:
             W3.check_counts(self)
 
         phi1 = a*PHI_P + b*PHI_M
@@ -216,7 +228,7 @@ class W3:
         a = np.cos(theta)
         b = np.sin(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W3.check_counts(self)
         
         phi2 = a*PSI_P + b*PSI_M
@@ -226,7 +238,7 @@ class W3:
         a = np.cos(theta)
         b = np.sin(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W3.check_counts(self)
         
         phi3 = a*PHI_P + b*PSI_P
@@ -236,7 +248,7 @@ class W3:
         a = np.cos(theta)
         b = np.sin(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W3.check_counts(self)
 
         phi4 = a*PHI_M + b*PSI_M
@@ -246,7 +258,7 @@ class W3:
         a = np.cos(theta)
         b = np.sin(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W3.check_counts(self)
 
         phi5 = a*PHI_P + 1j*b*PSI_M
@@ -256,7 +268,7 @@ class W3:
         a = np.cos(theta)
         b = np.sin(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W3.check_counts(self)
 
         phi6 = a*PHI_M + 1j*b*PSI_P
@@ -287,8 +299,15 @@ class W3:
         ws = [w(theta) for w in ws]
         values = []
         
-        for w in ws:
-            values += [np.trace(w @ self.rho).real]
+        if self.counts is None:
+            # if theoretical, use rho to calculate expec. vals
+            for w in ws:
+                values += [np.trace(w @ self.rho).real]
+        else:
+            # if experimental, use real-valued stokes params
+            for w in ws:
+                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
+ 
         return values
 
 
@@ -304,24 +323,15 @@ class W3:
               of the state
         """
         
-        # Get tensor'd Pauli matrices
-        pauli = [np.kron(IDENTITY, IDENTITY), np.kron(IDENTITY, PAULI_X), np.kron(IDENTITY, PAULI_Y),
-                 np.kron(IDENTITY, PAULI_Z), np.kron(PAULI_X, IDENTITY), np.kron(PAULI_X, PAULI_X),
-                 np.kron(PAULI_X, PAULI_Y), np.kron(PAULI_X, PAULI_Z), np.kron(PAULI_Y, IDENTITY),
-                 np.kron(PAULI_Y, PAULI_X), np.kron(PAULI_Y, PAULI_Y), np.kron(PAULI_Y, PAULI_Z), 
-                 np.kron(PAULI_Z, IDENTITY), np.kron(PAULI_Z, PAULI_X), np.kron(PAULI_Z, PAULI_Y), 
-                 np.kron(PAULI_Z, PAULI_Z)
-                ]
-        
         rho = np.zeros((4, 4), dtype='complex128')
-        for i in range(len(pauli)):
-            rho += self.stokes[i] * pauli[i]
+        for i in range(len(PAULI)):
+            rho += self.stokes[i] * PAULI[i]
         
         return 0.25 * rho
 
     def calculate_stokes(self):
         """
-        Calculates Stokes parameters
+        Calculates Stokes parameters of a density matrix and outputs them as a 16-dim vector
         
         NOTE: The order of this list is the same as S_{i, j} as listed in the 
               1-photon and 2-photon states from Beili Nora Hu paper (page 9)
@@ -348,6 +358,16 @@ class W3:
         
         return stokes
     
+    def witness_stokes(self, W):
+        """
+        Calculates Stokes parameters of a witness operator and outputs them as a 16-dim vector
+        """
+        S_w = np.empty(16)
+        for i in range(0, 4):
+            for j in range(0, 4):
+                S_w[4*i+j] = np.trace(PAULI[4*i+j] * W)
+        return S_w
+
     def check_zz(self, quiet=False):
         """
         Checks the necessary counts to determine if the zz measurement was taken
@@ -502,7 +522,7 @@ class W5(W3):
         # W3 witness to rotate from
         w1 = self.W3_1(theta)
         
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=1)
 
         # Create appropriate rotation matrix and apply it to the W3 witness
@@ -512,7 +532,7 @@ class W5(W3):
     def W5_2(self, theta, alpha):
         w2 = self.W3_2(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=1)
 
         rotation = np.kron(R_z(alpha), IDENTITY)
@@ -521,7 +541,7 @@ class W5(W3):
     def W5_3(self, theta, alpha, beta):
         w3 = self.W3_3(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=1)
 
         rotation = np.kron(R_z(alpha), R_z(beta))
@@ -532,7 +552,7 @@ class W5(W3):
     def W5_4(self, theta, alpha):
         w3 = self.W3_3(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=2)
 
         rotation = np.kron(R_x(alpha), IDENTITY)
@@ -541,7 +561,7 @@ class W5(W3):
     def W5_5(self, theta, alpha):
         w4 = self.W3_4(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=2)
 
         rotation = np.kron(R_x(alpha), IDENTITY)
@@ -550,7 +570,7 @@ class W5(W3):
     def W5_6(self, theta, alpha, beta):
         w1 = self.W3_1(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=2)
 
         rotation = np.kron(R_x(alpha), R_y(beta))
@@ -561,7 +581,7 @@ class W5(W3):
     def W5_7(self, theta, alpha):
         w5 = self.W3_5(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=3)
 
         rotation = np.kron(R_y(alpha), IDENTITY)
@@ -570,7 +590,7 @@ class W5(W3):
     def W5_8(self, theta, alpha):
         w6 = self.W3_6(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=3)
 
         rotation = np.kron(R_y(alpha), IDENTITY)
@@ -579,7 +599,7 @@ class W5(W3):
     def W5_9(self, theta, alpha, beta):
         w1 = self.W3_1(theta)
 
-        if self.counts:
+        if self.counts is not None:
             W5.check_counts(self, triplet=3)
 
         rotation = np.kron(R_y(alpha), R_y(beta))
@@ -618,10 +638,15 @@ class W5(W3):
         
         # Calculate the expectation values
         values = []
-        for w in w5s:
-            values += [np.trace(w @ self.rho).real]
+        if self.counts is None:
+            # if theoretical, use rho to calculate expec. vals
+            for w in w5s:
+                values += [np.trace(w @ self.rho).real]
+        else:
+            # if experimental, use real-valued stokes params
+            for w in w5s:
+                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
         return values
-    
     
     def check_counts(self, triplet):
         """
@@ -689,7 +714,7 @@ class W8(W5):
         # W5 witness to rotate from
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=1)
 
         rotation = np.kron(R_x(beta), IDENTITY)
@@ -698,7 +723,7 @@ class W8(W5):
     def W8_2(self, theta, alpha, beta, for_w7=False):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=1)
         
         rotation = np.kron(R_x(beta), IDENTITY)
@@ -707,7 +732,7 @@ class W8(W5):
     def W8_3(self, theta, alpha, beta, gamma, for_w7=False):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=1)
         
         rotation = np.kron(R_x(gamma), IDENTITY)
@@ -718,7 +743,7 @@ class W8(W5):
     def W8_4(self, theta, alpha, beta, for_w7=False):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=2)
         
         rotation = np.kron(IDENTITY, R_y(beta))
@@ -727,7 +752,7 @@ class W8(W5):
     def W8_5(self, theta, alpha, beta, for_w7=False):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=2)
         
         rotation = np.kron(IDENTITY, R_y(beta))
@@ -736,7 +761,7 @@ class W8(W5):
     def W8_6(self, theta, alpha, beta, gamma, for_w7=False):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=2)
         
         rotation = np.kron(IDENTITY, R_y(gamma))
@@ -751,7 +776,7 @@ class W8(W5):
     def W8_7(self, theta, alpha, beta, for_w7=False):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=3)
 
         rotation = np.kron(R_y(beta), IDENTITY)
@@ -760,7 +785,7 @@ class W8(W5):
     def W8_8(self, theta, alpha, beta, for_w7=False):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=3)
 
         rotation = np.kron(R_y(beta), IDENTITY)
@@ -769,7 +794,7 @@ class W8(W5):
     def W8_9(self, theta, alpha, beta, gamma, for_w7=False):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=3)
 
         rotation = np.kron(R_y(gamma), IDENTITY)
@@ -780,7 +805,7 @@ class W8(W5):
     def W8_10(self, theta, alpha, beta, for_w7=False):
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=4)
 
         rotation = np.kron(IDENTITY, R_x(beta))
@@ -789,7 +814,7 @@ class W8(W5):
     def W8_11(self, theta, alpha, beta, for_w7=False):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=4)
 
         rotation = np.kron(IDENTITY, R_x(beta))
@@ -798,7 +823,7 @@ class W8(W5):
     def W8_12(self, theta, alpha, beta, gamma, for_w7=False):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=4)
 
         rotation = np.kron(IDENTITY, R_x(gamma))
@@ -812,7 +837,7 @@ class W8(W5):
     def W8_13(self, theta, alpha, beta, for_w7=False):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=5)
 
         rotation = np.kron(R_x(beta), IDENTITY)
@@ -821,7 +846,7 @@ class W8(W5):
     def W8_14(self, theta, alpha, beta, for_w7=False):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=5)
 
         rotation = np.kron(R_x(beta), IDENTITY)
@@ -830,7 +855,7 @@ class W8(W5):
     def W8_15(self, theta, alpha, beta, gamma, for_w7=False):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=5)
 
         rotation = np.kron(R_x(gamma), IDENTITY)
@@ -841,7 +866,7 @@ class W8(W5):
     def W8_16(self, theta, alpha, beta, for_w7=False):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=6)
 
         rotation = np.kron(IDENTITY, R_z(beta))
@@ -850,7 +875,7 @@ class W8(W5):
     def W8_17(self, theta, alpha, beta, for_w7=False):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=6)
 
         rotation = np.kron(IDENTITY, R_z(beta))
@@ -859,7 +884,7 @@ class W8(W5):
     def W8_18(self, theta, alpha, beta, gamma, for_w7=False):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=6)
 
         rotation = np.kron(IDENTITY, R_z(gamma))
@@ -874,7 +899,7 @@ class W8(W5):
     def W8_19(self, theta, alpha, beta, for_w7=False):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=7)
 
         rotation = np.kron(R_z(beta), IDENTITY)
@@ -883,7 +908,7 @@ class W8(W5):
     def W8_20(self, theta, alpha, beta, for_w7=False):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=7)
 
         rotation = np.kron(R_z(beta), IDENTITY)
@@ -892,7 +917,7 @@ class W8(W5):
     def W8_21(self, theta, alpha, beta, gamma, for_w7=False):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=7)
 
         rotation = np.kron(R_z(gamma), IDENTITY)
@@ -903,7 +928,7 @@ class W8(W5):
     def W8_22(self, theta, alpha, beta, for_w7=False):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=8)
 
         rotation = np.kron(IDENTITY, R_x(beta))
@@ -912,7 +937,7 @@ class W8(W5):
     def W8_23(self, theta, alpha, beta, for_w7=False):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=8)
 
         rotation = np.kron(IDENTITY, R_x(beta))
@@ -921,7 +946,7 @@ class W8(W5):
     def W8_24(self, theta, alpha, beta, gamma, for_w7=False):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=8)
 
         rotation = np.kron(IDENTITY, R_x(gamma))
@@ -936,7 +961,7 @@ class W8(W5):
     def W8_25(self, theta, alpha, beta, for_w7=False):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=9)
 
         rotation = np.kron(R_y(beta), IDENTITY)
@@ -945,7 +970,7 @@ class W8(W5):
     def W8_26(self, theta, alpha, beta, for_w7=False):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=9)
 
         rotation = np.kron(R_y(beta), IDENTITY)
@@ -954,7 +979,7 @@ class W8(W5):
     def W8_27(self, theta, alpha, beta, gamma, for_w7=False):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=9)
 
         rotation = np.kron(R_y(gamma), IDENTITY)
@@ -965,7 +990,7 @@ class W8(W5):
     def W8_28(self, theta, alpha, beta, for_w7=False):
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=10)
 
         rotation = np.kron(IDENTITY, R_z(beta))
@@ -974,7 +999,7 @@ class W8(W5):
     def W8_29(self, theta, alpha, beta, for_w7=False):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=10)
 
         rotation = np.kron(IDENTITY, R_z(beta))
@@ -983,7 +1008,7 @@ class W8(W5):
     def W8_30(self, theta, alpha, beta, gamma, for_w7=False):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=10)
 
         rotation = np.kron(IDENTITY, R_z(gamma))
@@ -998,7 +1023,7 @@ class W8(W5):
     def W8_31(self, theta, alpha, beta, for_w7=False):
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=11)
 
         rotation = np.kron(R_z(beta), IDENTITY)
@@ -1007,7 +1032,7 @@ class W8(W5):
     def W8_32(self, theta, alpha, beta, for_w7=False):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=11)
 
         rotation = np.kron(R_z(beta), IDENTITY)
@@ -1016,7 +1041,7 @@ class W8(W5):
     def W8_33(self, theta, alpha, beta, gamma, for_w7=False):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=11)
 
         rotation = np.kron(R_z(gamma), IDENTITY)
@@ -1027,7 +1052,7 @@ class W8(W5):
     def W8_34(self, theta, alpha, beta, for_w7=False):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=12)
 
         rotation = np.kron(IDENTITY, R_y(beta))
@@ -1036,7 +1061,7 @@ class W8(W5):
     def W8_35(self, theta, alpha, beta, for_w7=False):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=12)
 
         rotation = np.kron(IDENTITY, R_y(beta))
@@ -1045,7 +1070,7 @@ class W8(W5):
     def W8_36(self, theta, alpha, beta, gamma, for_w7=False):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts and not for_w7:
+        if self.counts is not None and not for_w7:
             W8.check_counts(triplet=12)
 
         rotation = np.kron(IDENTITY, R_y(gamma))
@@ -1088,8 +1113,14 @@ class W8(W5):
         
         # Calculate the expectation values
         values = []
-        for w in w8s:
-            values += [np.trace(w @ self.rho).real]
+        if self.counts is None:
+            # if theoretical, use rho to calculate expec. vals
+            for w in w8s:
+                values += [np.trace(w @ self.rho).real]
+        else:
+            # if experimental, use real-valued stokes params
+            for w in w8s:
+                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
         return values
     
     def check_counts(self, triplet):
@@ -1241,7 +1272,7 @@ class W7(W8):
         # W8 witness to rotate from
         w8 = self.W8_1(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1251,7 +1282,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_2(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1261,7 +1292,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_3(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1273,7 +1304,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_4(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1283,7 +1314,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_5(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1293,7 +1324,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_6(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1305,7 +1336,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_7(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1315,7 +1346,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_8(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1325,7 +1356,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_9(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1336,7 +1367,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_10(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1346,7 +1377,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_11(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1356,7 +1387,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_12(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=1)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1372,7 +1403,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_1(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1382,7 +1413,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_2(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1392,7 +1423,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_3(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1402,7 +1433,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_4(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1412,7 +1443,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_5(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1422,7 +1453,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_6(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1434,7 +1465,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_25(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1444,7 +1475,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_26(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1454,7 +1485,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_27(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1464,7 +1495,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_28(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1474,7 +1505,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_29(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1484,7 +1515,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_30(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=2)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -1500,7 +1531,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_1(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1510,7 +1541,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_2(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1520,7 +1551,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_3(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1530,7 +1561,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_4(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1540,7 +1571,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_5(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1550,7 +1581,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_6(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -1562,7 +1593,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_19(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1572,7 +1603,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_20(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1582,7 +1613,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_21(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1592,7 +1623,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_22(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1602,7 +1633,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_23(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1612,7 +1643,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_24(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=3)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1628,7 +1659,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_13(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1638,7 +1669,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_14(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1648,7 +1679,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_15(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1658,7 +1689,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_16(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1668,7 +1699,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_17(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1678,7 +1709,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_18(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1691,7 +1722,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_19(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1701,7 +1732,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_20(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1711,7 +1742,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_21(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1721,7 +1752,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_22(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1731,7 +1762,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_23(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1741,7 +1772,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_24(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=4)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1757,7 +1788,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_13(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -1767,7 +1798,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_14(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -1777,7 +1808,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_15(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -1787,7 +1818,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_16(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -1797,7 +1828,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_17(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -1807,7 +1838,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_18(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -1819,7 +1850,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_31(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -1829,7 +1860,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_32(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -1839,7 +1870,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_33(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -1849,7 +1880,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_34(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -1859,7 +1890,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_35(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -1869,7 +1900,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_36(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=5)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -1886,7 +1917,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_13(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1896,7 +1927,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_14(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1906,7 +1937,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_15(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1916,7 +1947,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_16(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1926,7 +1957,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_17(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1936,7 +1967,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_18(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(R_x(delta), IDENTITY)
@@ -1948,7 +1979,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_7(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1958,7 +1989,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_8(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1968,7 +1999,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_9(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1978,7 +2009,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_10(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1988,7 +2019,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_11(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -1998,7 +2029,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_12(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=6)
 
         rotation = np.kron(IDENTITY, R_x(delta))
@@ -2014,7 +2045,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_7(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2024,7 +2055,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_8(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2034,7 +2065,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_9(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2044,7 +2075,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_10(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2054,7 +2085,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_11(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2064,7 +2095,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_12(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2076,7 +2107,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_31(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -2086,7 +2117,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_32(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -2096,7 +2127,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_33(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -2106,7 +2137,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_34(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -2116,7 +2147,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_35(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -2126,7 +2157,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_36(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=7)
 
         rotation = np.kron(IDENTITY, R_y(delta))
@@ -2143,7 +2174,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_25(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2153,7 +2184,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_26(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2163,7 +2194,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_27(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2173,7 +2204,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_28(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2183,7 +2214,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_29(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2193,7 +2224,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_30(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_y(delta), IDENTITY)
@@ -2206,7 +2237,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_31(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2216,7 +2247,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_32(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2226,7 +2257,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_33(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2236,7 +2267,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_34(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2246,7 +2277,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_35(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2256,7 +2287,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_36(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=8)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2272,7 +2303,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_25(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -2282,7 +2313,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_26(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -2292,7 +2323,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_27(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -2302,7 +2333,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_28(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -2312,7 +2343,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_29(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -2322,7 +2353,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_30(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(IDENTITY, R_z(delta))
@@ -2334,7 +2365,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_19(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2344,7 +2375,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_20(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2354,7 +2385,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_21(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2364,7 +2395,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_22(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2374,7 +2405,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_23(theta, alpha, beta, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2384,7 +2415,7 @@ class W7(W8):
         delta = np.arctan(-1/np.tan(alpha))
         w8 = self.W8_24(theta, alpha, beta, gamma, for_w7=True)
 
-        if self.counts:
+        if self.counts is not None:
             W7.check_counts(set=9)
 
         rotation = np.kron(R_z(delta), IDENTITY)
@@ -2451,8 +2482,14 @@ class W7(W8):
         
         # Calculate the expectation values
         values = []
-        for w in w7s:
-            values += [np.trace(w @ self.rho).real]
+        if self.counts is None:
+            # if theoretical, use rho to calculate expec. vals
+            for w in w7s:
+                values += [np.trace(w @ self.rho).real]
+        else:
+            # if experimental, use real-valued stokes params
+            for w in w7s:
+                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
         return values
     
 
