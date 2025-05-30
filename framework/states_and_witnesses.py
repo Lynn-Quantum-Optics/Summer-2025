@@ -166,6 +166,7 @@ class W3:
         if counts is None:
             assert rho is not None, "ERROR: counts not given, so rho should be given"
             self.rho = rho
+            self.stokes = self.stokes_from_mtx(rho)
 
         else:
             # counts given, so we will construct an experimental density matrix, so

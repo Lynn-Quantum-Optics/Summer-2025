@@ -115,11 +115,11 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     # Get necessary witnesses
     if type(witness_classes) != list:
-        ws = witness_classes(rho=rho, counts=counts).get_witnesses()
+        ws = witness_classes(rho=rho, counts=counts).get_witnesses("operators")
     else:
         ws = []
         for c in witness_classes:
-            ws += c(rho=rho, counts=counts).get_witnesses()
+            ws += c(rho=rho, counts=counts).get_witnesses("operators")
 
     # Convert witness matrix function to TensorFlow
     def witness_matrix_tf(w):
