@@ -115,27 +115,29 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     # Get necessary witnesses
     if type(witness_classes) != list:
-        ws = witness_classes(rho=rho, counts=counts).get_witnesses("operators")
+        all_W_stokes = witness_classes(rho=rho, counts=counts).get_witnesses("stokes")
+        rho_stokes = witness_classes(rho=rho, counts=counts).stokes
     else:
-        ws = []
+        all_W_stokes = []
         for c in witness_classes:
-            ws += c(rho=rho, counts=counts).get_witnesses("operators")
+            all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes")
+        rho_stokes = states.W3(rho=rho, counts=counts).stokes
 
-    # Convert witness matrix function to TensorFlow
-    def witness_matrix_tf(w):
-        return tf.convert_to_tensor(w, dtype=tf.complex64)
-    
-    # Convert density matrix to TensorFlow
-    rho_tf = tf.convert_to_tensor(rho, dtype=tf.complex64)
-
-    def loss(W, params):
+    def svec_to_tf(s):
         """
-        Loss function for minimization: tr(W @ rho)
-
-        NOTE: this is the expectation value of W
+        Convert a vector of Stokes params to TensorFlow object
         """
-        witness = witness_matrix_tf(W(*params))
-        return tf.linalg.trace(tf.matmul(witness, rho_tf))
+        return tf.convert_to_tensor(s, dtype=tf.float64)
+
+    def loss(W_stokes, rho_stokes, params):
+        """
+        Loss function for minimization: 1/16 * (S_w dot S_rho)
+
+        NOTE: this is the expectation value of W defined by the Stokes params
+        """
+        W_stokes_tf = svec_to_tf(W_stokes(*params))
+        rho_stokes_tf = svec_to_tf(rho_stokes)
+        return 0.0625 * tf.tensordot(W_stokes_tf, rho_stokes_tf, 1)
     
     # minimize using the Adam optimizer
     lr_schedule = tf.keras.optimizers.schedules.CosineDecayRestarts(
@@ -147,12 +149,15 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     )
     optimizer = tf.optimizers.Adam(learning_rate=lr_schedule)
 
-    def optimize(W, params, threshold=1e-10, max_iters=1000):
+    def optimize(W_stokes, rho_stokes, params, threshold=1e-10, max_iters=1000):
         """
         Generic minimization loop that works for any number of minimization parameters
 
         Parameters:
-        W                    - the witness whose expectation value will be minimized
+        W_stokes             - a 16d vector of Stokes parameters representing the witness
+                               whose expectation value will be minimized
+        rho_stokes           - a 16d vector of Stokes parameters representing the density matrix
+                               of the state
         params               - the witness parameters to be minimized (i.e. theta, alpha, beta)
         threshold (optional) - smallest allowed change in the loss function (i.e. expectation value)
         max_iters (optional) - maximum number of iterations allowed in the optimization loop
@@ -166,7 +171,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         # the maximum iterations 
         for _ in range(max_iters):
             with tf.GradientTape() as tape:
-                loss_value = loss(W, params)
+                loss_value = loss(W_stokes, rho_stokes, params)
 
             loss_real = tf.math.real(loss_value).numpy()
         
@@ -187,9 +192,9 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     # Minimize each witness
     # TODO: look into MULTITHREADING or multipooling
-    for W in ws:
+    for W_stokes in all_W_stokes:
         # determine number of parameters to be minimzed
-        num_params = len(signature(W).parameters)
+        num_params = len(signature(W_stokes).parameters)
         
         # initialize bounds for the parameters to be minimized
         lower_bound = tf.constant(0.0, dtype=tf.float64)
@@ -227,7 +232,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
             # use the right number of parameters
             param_vars = [theta, alpha, beta, gamma][:num_params]
-            this_min_params, this_min_val = optimize(W, param_vars)
+            this_min_params, this_min_val = optimize(W_stokes, rho_stokes, param_vars)
 
             if this_min_val < min_val:
                 best_param = this_min_params
@@ -239,7 +244,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         beta = tf.Variable(lower_bound, dtype=tf.float64)
         gamma = tf.Variable(lower_bound, dtype=tf.float64)
         param_vars = [theta, alpha, beta, gamma][:num_params]
-        this_min_params, this_min_val = optimize(W, param_vars)
+        this_min_params, this_min_val = optimize(W_stokes, rho_stokes, param_vars)
         if this_min_val < min_val:
                 best_param = this_min_params
                 min_val = this_min_val
@@ -250,7 +255,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         beta = tf.Variable(beta_bound, dtype=tf.float64)
         gamma = tf.Variable(gamma_bound, dtype=tf.float64)
         param_vars = [theta, alpha, beta, gamma][:num_params]
-        this_min_params, this_min_val = optimize(W, param_vars)
+        this_min_params, this_min_val = optimize(W_stokes, rho_stokes, param_vars)
         if this_min_val < min_val:
                 best_param = this_min_params
                 min_val = this_min_val

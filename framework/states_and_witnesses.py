@@ -154,12 +154,13 @@ class W3:
     Attributes: 
     rho (optional)    - the density matrix for the 2-photon state
     counts (optional) - np array of photon counts and uncertainties from experimental data
+    stokes            - the Stokes parameters of the density matrix
 
     NOTE: One of rho or counts must be given
     NOTE: If counts is given, experimental calculations will be used
     NOTE: If rho is given, theoretical calculations will be used
     """
-    def __init__(self, rho = None, counts=None):
+    def __init__(self, rho = None, counts = None):
         self.counts = counts
             
         # counts not given, so we want to use the given theoretical rho
