@@ -192,11 +192,11 @@ class W3:
             self.ld, self.la = counts[COUNTS_INDEX['LD']], counts[COUNTS_INDEX['LA']]
             self.lr, self.ll = counts[COUNTS_INDEX['LR']], counts[COUNTS_INDEX['LL']]
 
-            self.stokes = self.calculate_stokes()
+            self.stokes = self.stokes_from_counts()
 
             # calculate experimental density matrix
             # NOTE: doesn't necessarily represent a full state
-            
+
             # commented out line below because of uncertainty issue when dealing with complex rho
             # TODO: decide if we want to calculate expt_rho at all?
             # self.rho = self.expt_rho()
@@ -274,42 +274,44 @@ class W3:
         phi6 = a*PHI_M + 1j*b*PSI_P
         return op.partial_transpose(phi6 * op.adjoint(phi6))
 
-    def get_witnesses(self, vals=False, theta=None):
+    def get_witnesses(self, return_type, theta=None):
         """
-        Returns either all 6 W3 witnesses as operators or the expectation values 
-        of the W3 witnesses with a given theta
+        If return_type is 'stokes':
+            Returns the Stokes parameters for each of the 6 W3 witnesses
+        If return_type is 'operators':
+            Returns all 6 W3 witnesses as operators
+        If return type is 'vals':
+            Returns the expectation values of the W3 witnesses with a given theta
 
         Params:
-        vals (optional)  - if true, return the witness expectation values, otherwise return 
-                           the operators as functions
+        return_type - determines whether to return Stokes parameters, expectation values,
+                      or operator representations of the witnesses
         theta (optional) - the theta value to calculate expectation values for when vals is True
-        
-        NOTE: vals is False by default, so operators are returned by default
-        NOTE: theta is not given by default, and must be given when vals is True
-        NOTE: operators will always be returned if vals is False even if theta is given
+
+        NOTE: theta is not given by default, and must be given when returning vals
+        NOTE: even if theta is given, vals are only calculated for return_type vals
         """
         ws = [self.W3_1, self.W3_2, self.W3_3, self.W3_4, self.W3_5, self.W3_6]
-    
-        ## By default, return the operators
-        if not vals:
-            return ws
-
-        ## Otherwise, return the expectation values with the given theta
-        assert theta is not None, "ERROR: theta not given"
-        ws = [w(theta) for w in ws]
-        values = []
         
-        if self.counts is None:
-            # if theoretical, use rho to calculate expec. vals
-            for w in ws:
-                values += [np.trace(w @ self.rho).real]
-        else:
-            # if experimental, use real-valued stokes params
-            for w in ws:
-                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
- 
-        return values
+        if return_type == "stokes":
+            return [self.stokes_from_mtx(w) for w in ws]
 
+        elif return_type == "operators":
+            return ws
+        
+        elif return_type == "vals":
+            # Check to see that theta is given
+            assert theta is not None, "ERROR: theta not given"
+            ws = [w(theta) for w in ws]
+            values = []
+
+            for w in ws:
+                values += [0.0625 * np.dot(self.stokes, self.stokes_from_mtx(w))] # 0.0625 is 1/16
+ 
+            return values
+        
+        else: # invalid return_type
+            raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
 
     ##################################
     ## COUNT HANDLING FUNCTIONS
@@ -329,7 +331,7 @@ class W3:
         
         return 0.25 * rho
 
-    def calculate_stokes(self):
+    def stokes_from_counts(self):
         """
         Calculates Stokes parameters of a density matrix and outputs them as a 16-dim vector
         
@@ -358,15 +360,17 @@ class W3:
         
         return stokes
     
-    def witness_stokes(self, W):
+    def stokes_from_mtx(self, M):
         """
-        Calculates Stokes parameters of a witness operator and outputs them as a 16-dim vector
+        Calculates Stokes parameters of a matrix or operator and outputs them as a 16-dim vector
+
+        Params:
+        M - the 4x4 complex matrix to find Stokes params for
         """
-        S_w = np.empty(16)
-        for i in range(0, 4):
-            for j in range(0, 4):
-                S_w[4*i+j] = np.trace(PAULI[4*i+j] * W)
-        return S_w
+        S_M = np.empty(16)
+        for i in range(0, 16):
+            S_M[i] = np.trace(PAULI[i] @ M).real
+        return S_M
 
     def check_zz(self, quiet=False):
         """
@@ -606,12 +610,16 @@ class W5(W3):
         return op.rotate_m(w1, rotation)
     
 
-    def get_witnesses(self, vals=False, theta=None, alpha=None, beta=None):
+    def get_witnesses(self, return_type, theta=None, alpha=None, beta=None):
         """
-        Returns either all 9 W5 witnesses as operators (default) or the expectation values 
-        of the W5 witnesses with given parameters (if vals is set to True)
+        If return_type is 'stokes':
+            Returns the Stokes parameters for each of the 9 W5 witnesses
+        If return_type is 'operators':
+            Returns all 9 W5 witnesses as operators
+        If return type is 'vals':
+            Returns the expectation values of the W5 witnesses with given parameters
 
-        NOTE: theta, alpha, beta must be given when vals is True
+        NOTE: theta, alpha, beta must be given when returning vals
         NOTE: Works the same as the get_witnesses function from W3, see docstring from that
               function for more details
         """
@@ -619,34 +627,33 @@ class W5(W3):
                 self.W5_4, self.W5_5, self.W5_6,
                 self.W5_7, self.W5_8, self.W5_9]
         
-        ## Return operators if vals is False
-        if not vals:
+        if return_type == "stokes":
+            return [self.stokes_from_mtx(w) for w in w5s]
+
+        elif return_type == "operators":
             return w5s
         
-        # Otherwise, we calculate expectation values, so check to see that
-        # all parameters are given
-        assert theta is not None, "ERROR: theta not given"
-        assert alpha is not None, "ERROR: alpha not given"
-        assert beta is not None, "ERROR: beta not given"
+        elif return_type == "vals":
+            # Check to see that all parameters are given
+            assert theta is not None, "ERROR: theta not given"
+            assert alpha is not None, "ERROR: alpha not given"
+            assert beta is not None, "ERROR: beta not given"
 
-        # Get the W5 operators for the given parameters
-        for i, W in enumerate(w5s):
-            if i == 2 or i == 5 or i == 8:
-                w5s[i] = W(theta, alpha, beta)
-            else:
-                w5s[i] = W(theta, alpha)
+            # Get the W5 operators for the given parameters
+            for i, W in enumerate(w5s):
+                if i == 2 or i == 5 or i == 8:
+                    w5s[i] = W(theta, alpha, beta)
+                else:
+                    w5s[i] = W(theta, alpha)
+            
+            # Calculate the expectation values
+            values = []
+            for w in w5s:
+                values += [0.0625 * np.dot(self.stokes, self.stokes_from_mtx(w))] # 0.0625 is 1/16
+            return values
         
-        # Calculate the expectation values
-        values = []
-        if self.counts is None:
-            # if theoretical, use rho to calculate expec. vals
-            for w in w5s:
-                values += [np.trace(w @ self.rho).real]
-        else:
-            # if experimental, use real-valued stokes params
-            for w in w5s:
-                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
-        return values
+        else: # invalid return_type
+            raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
     
     def check_counts(self, triplet):
         """
@@ -1077,15 +1084,20 @@ class W8(W5):
         return op.rotate_m(w5_3, rotation)
 
 
-    def get_witnesses(self, vals=False, theta=None, alpha=None, beta=None, gamma=None):
+    def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
         """
-        Returns either all 36 W8 witnesses as operators or the expectation values 
-        of the W8 witnesses with given parameters
+        If return_type is 'stokes':
+            Returns the Stokes parameters for each of the 36 W8 witnesses
+        If return_type is 'operators':
+            Returns all 36 W8 witnesses as operators
+        If return type is 'vals':
+            Returns the expectation values of the W8 witnesses with given parameters
 
-        NOTE: theta, alpha, beta, gamma must be given when vals is True
+        NOTE: theta, alpha, beta, gamma must be given when returning vals
         NOTE: Works the same as the get_witnesses function from W3, see docstring from that
               function for more details
         """
+
         w8s = [self.W8_1, self.W8_2, self.W8_3, self.W8_4, self.W8_5, self.W8_6,
                self.W8_7, self.W8_8, self.W8_9, self.W8_10, self.W8_11, self.W8_12,
                self.W8_13, self.W8_14, self.W8_15, self.W8_16, self.W8_17, self.W8_18,
@@ -1093,35 +1105,36 @@ class W8(W5):
                self.W8_25, self.W8_26, self.W8_27, self.W8_28, self.W8_29, self.W8_30,
                self.W8_31, self.W8_32, self.W8_33, self.W8_34, self.W8_35, self.W8_36]
         
+        if return_type == "stokes":
+            return [self.stokes_from_mtx(w) for w in w8s]
+        
         ## Return operators
-        if not vals:
+        if return_type == "operators":
             return w8s
         
-        # Check to see that all parameters are given
-        assert theta is not None, "ERROR: theta not given"
-        assert alpha is not None, "ERROR: alpha not given"
-        assert beta is not None, "ERROR: beta not given"
-        assert gamma is not None, "ERROR: gamma not given"
+        elif return_type == "vals":
+            # Check to see that all parameters are given
+            assert theta is not None, "ERROR: theta not given"
+            assert alpha is not None, "ERROR: alpha not given"
+            assert beta is not None, "ERROR: beta not given"
+            assert gamma is not None, "ERROR: gamma not given"
 
-        # Get the W8 operators for the given parameters
-        for i, W in enumerate(w8s):
-            # every 3rd witness needs gamma (NOTE: i is zero-indexed)
-            if i % 3 == 2:
-                w8s[i] = W(theta, alpha, beta, gamma)
-            else:
-                w8s[i] = W(theta, alpha, beta)
+            # Get the W8 operators for the given parameters
+            for i, W in enumerate(w8s):
+                # every 3rd witness needs gamma (NOTE: i is zero-indexed)
+                if i % 3 == 2:
+                    w8s[i] = W(theta, alpha, beta, gamma)
+                else:
+                    w8s[i] = W(theta, alpha, beta)
+            
+            # Calculate the expectation values
+            values = []
+            for w in w8s:
+                values += [0.0625 * np.dot(self.stokes, self.stokes_from_mtx(w))] # 0.0625 is 1/16
+            return values
         
-        # Calculate the expectation values
-        values = []
-        if self.counts is None:
-            # if theoretical, use rho to calculate expec. vals
-            for w in w8s:
-                values += [np.trace(w @ self.rho).real]
-        else:
-            # if experimental, use real-valued stokes params
-            for w in w8s:
-                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
-        return values
+        else: # invalid return_type
+            raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
     
     def check_counts(self, triplet):
         """
@@ -2434,15 +2447,20 @@ class W7(W8):
         return
 
 
-    def get_witnesses(self, vals=False, theta=None, alpha=None, beta=None, gamma=None):
+    def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
         """
-        Returns either all 108 W7 witnesses as operators or the expectation values 
-        of the W7 witnesses with given parameters
+        If return_type is 'stokes':
+            Returns the Stokes parameters for each of the 108 W7 witnesses
+        If return_type is 'operators':
+            Returns all 108 W7 witnesses as operators
+        If return type is 'vals':
+            Returns the expectation values of the W7 witnesses with given parameters
 
-        NOTE: theta, alpha, beta, gamma must be given when vals is True
+        NOTE: theta, alpha, beta, gamma must be given when returning vals
         NOTE: Works the same as the get_witnesses function from W3, see docstring from that
               function for more details
         """
+
         w7s = [self.W7_1, self.W7_2, self.W7_3, self.W7_4, self.W7_5, self.W7_6,
                self.W7_7, self.W7_8, self.W7_9, self.W7_10, self.W7_11, self.W7_12,
                self.W7_13, self.W7_14, self.W7_15, self.W7_16, self.W7_17, self.W7_18,
@@ -2462,37 +2480,36 @@ class W7(W8):
                self.W7_97, self.W7_98, self.W7_99, self.W7_100, self.W7_101, self.W7_102,
                self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
         
+        if return_type == "stokes":
+            return [self.stokes_from_mtx(w) for w in w7s]
+        
         ## Return operators
-        if not vals:
+        if return_type == "operators":
             return w7s
         
-        # Check to see that all parameters are given
-        assert theta is not None, "ERROR: theta not given"
-        assert alpha is not None, "ERROR: alpha not given"
-        assert beta is not None, "ERROR: beta not given"
-        assert gamma is not None, "ERROR: gamma not given"
+        elif return_type == "vals":
+            # Check to see that all parameters are given
+            assert theta is not None, "ERROR: theta not given"
+            assert alpha is not None, "ERROR: alpha not given"
+            assert beta is not None, "ERROR: beta not given"
+            assert gamma is not None, "ERROR: gamma not given"
 
-        # Get the W8 operators for the given parameters
-        for i, W in enumerate(w7s):
-            # every 3rd witness needs gamma
-            if i % 3 == 2:
-                w7s[i] = W(theta, alpha, beta, gamma)
-            else:
-                w7s[i] = W(theta, alpha, beta)
+            # Get the W8 operators for the given parameters
+            for i, W in enumerate(w7s):
+                # every 3rd witness needs gamma (NOTE: i is zero-indexed)
+                if i % 3 == 2:
+                    w7s[i] = W(theta, alpha, beta, gamma)
+                else:
+                    w7s[i] = W(theta, alpha, beta)
+            
+            # Calculate the expectation values
+            values = []
+            for w in w7s:
+                values += [0.0625 * np.dot(self.stokes, self.stokes_from_mtx(w))] # 0.0625 is 1/16
+            return values
         
-        # Calculate the expectation values
-        values = []
-        if self.counts is None:
-            # if theoretical, use rho to calculate expec. vals
-            for w in w7s:
-                values += [np.trace(w @ self.rho).real]
-        else:
-            # if experimental, use real-valued stokes params
-            for w in w7s:
-                values += [0.0625 * np.dot(self.stokes, self.witness_stokes(w))] # 0.0625 is 1/16
-        return values
-    
-
+        else: # invalid return_type
+            raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
 
 class NavarroWitness(W7):
     """
@@ -2506,7 +2523,7 @@ class NavarroWitness(W7):
     def __init__(self, rho=None, counts=None):
         super().__init__(rho=rho, counts=counts)
 
-    def get_witnesses(self, vals=False, theta=None, alpha=None, beta=None, gamma=None):
+    def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
         """
         Returns either all witnesses as operators or the expectation values 
         of the witnesses with given parameters
@@ -2517,10 +2534,10 @@ class NavarroWitness(W7):
         """
 
         # TODO: Implementation of W7s needs to be finished before this works
-        return (W3.get_witnesses(self, vals, theta) + 
-                W5.get_witnesses(self, vals, theta, alpha, beta) +
-                W7.get_witnesses(self, vals, theta, alpha, beta, gamma) + 
-                W8.get_witnesses(self, vals, theta, alpha, beta, gamma))
+        return (W3.get_witnesses(self, return_type, theta) + 
+                W5.get_witnesses(self, return_type, theta, alpha, beta) +
+                W7.get_witnesses(self, return_type, theta, alpha, beta, gamma) + 
+                W8.get_witnesses(self, return_type, theta, alpha, beta, gamma))
 
 
 if __name__ == '__main__':

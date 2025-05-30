@@ -193,8 +193,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, 0.95))
         print("Adjusted theory Ws computed")
         # calculate W and W' expt
-        # TODO: assertion error when giving rho & counts, just giving counts causes index error
-        # the commented line below works, but doesn't give uncertainties
+        # TODO: do minimizations using real values for expt data, check how expec. vals are used
         # W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
