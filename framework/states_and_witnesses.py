@@ -296,7 +296,9 @@ class W3:
         ws = [self.W3_1, self.W3_2, self.W3_3, self.W3_4, self.W3_5, self.W3_6]
         
         if return_type == "stokes":
-            return [self.stokes_from_mtx(w) for w in ws]
+            for w in ws:
+                print(w)
+            #return [self.stokes_from_mtx(w) for w in ws]
 
         elif return_type == "operators":
             return ws
@@ -370,7 +372,8 @@ class W3:
         M - the 4x4 complex matrix to find Stokes params for
         """
         S_M = np.empty(16)
-        for i in range(0, 16):
+        S_M[0] = np.trace(M).real
+        for i in range(1, 16):
             S_M[i] = np.trace(PAULI[i] @ M).real
         return S_M
 

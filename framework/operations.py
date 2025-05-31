@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sp
 import states_and_witnesses as states
 import tensorflow as tf
 from inspect import signature
@@ -86,6 +87,11 @@ def rotate_m(m, n):
 ## MINIMIZATION
 ##################
 
+theta1 = sp.symbols('theta1')
+alpha1 = sp.symbols('alpha1')
+beta1 = sp.symbols('beta1')
+gamma1 = sp.symbols('gamma1')
+
 # TODO: REVIEW THIS BY LOOKING AT SUMMER 2024 PAPER DRAFT 
 #       FIGURES 4,5,6 (SOLID LINES) AND EQUATIONS 3,4,5
 def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
@@ -115,12 +121,17 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     # Get necessary witnesses
     if type(witness_classes) != list:
-        all_W_stokes = witness_classes(rho=rho, counts=counts).get_witnesses("stokes")
+        all_W_stokes = witness_classes(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1, alpha=alpha1, beta=beta1)
         rho_stokes = witness_classes(rho=rho, counts=counts).stokes
     else:
         all_W_stokes = []
         for c in witness_classes:
-            all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes")
+            if c == states.W3:
+                all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1)
+            elif c == states.W5:
+                all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1, alpha=alpha1, beta=beta1)
+            else:
+                all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1, alpha=alpha1, beta=beta1, gamma=gamma1)
         rho_stokes = states.W3(rho=rho, counts=counts).stokes
 
     def svec_to_tf(s):
