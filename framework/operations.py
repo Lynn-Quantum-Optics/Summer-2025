@@ -87,10 +87,10 @@ def rotate_m(m, n):
 ## MINIMIZATION
 ##################
 
-theta1 = sp.symbols('theta1')
-alpha1 = sp.symbols('alpha1')
-beta1 = sp.symbols('beta1')
-gamma1 = sp.symbols('gamma1')
+#theta1 = sp.symbols('theta1')
+#alpha1 = sp.symbols('alpha1')
+#beta1 = sp.symbols('beta1')
+#gamma1 = sp.symbols('gamma1')
 
 # TODO: REVIEW THIS BY LOOKING AT SUMMER 2024 PAPER DRAFT 
 #       FIGURES 4,5,6 (SOLID LINES) AND EQUATIONS 3,4,5
@@ -121,24 +121,19 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     # Get necessary witnesses
     if type(witness_classes) != list:
-        all_W_stokes = witness_classes(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1, alpha=alpha1, beta=beta1)
+        all_W_stokes = witness_classes(rho=rho, counts=counts).get_witnesses("stokes")
         rho_stokes = witness_classes(rho=rho, counts=counts).stokes
     else:
         all_W_stokes = []
         for c in witness_classes:
-            if c == states.W3:
-                all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1)
-            elif c == states.W5:
-                all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1, alpha=alpha1, beta=beta1)
-            else:
-                all_W_stokes += c(rho=rho, counts=counts).get_witnesses("stokes", theta=theta1, alpha=alpha1, beta=beta1, gamma=gamma1)
+            all_W_stokes.append(c(rho=rho, counts=counts).get_witnesses("stokes"))
         rho_stokes = states.W3(rho=rho, counts=counts).stokes
 
     def svec_to_tf(s):
         """
         Convert a vector of Stokes params to TensorFlow object
         """
-        return tf.convert_to_tensor(s, dtype=tf.float64)
+        return tf.constant(s, dtype=tf.float64)
 
     def loss(W_stokes, rho_stokes, params):
         """
@@ -147,8 +142,12 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         NOTE: this is the expectation value of W defined by the Stokes params
         """
         W_stokes_tf = svec_to_tf(W_stokes(*params))
+        print("W_stokes_tf: ", W_stokes_tf)
         rho_stokes_tf = svec_to_tf(rho_stokes)
-        return 0.0625 * tf.tensordot(W_stokes_tf, rho_stokes_tf, 1)
+        print("rho_stokes_tf: ", rho_stokes_tf)
+        loss = 0.0625 * tf.tensordot(W_stokes_tf, rho_stokes_tf, axes=1)
+        print("loss: ", loss)
+        return loss
     
     # minimize using the Adam optimizer
     lr_schedule = tf.keras.optimizers.schedules.CosineDecayRestarts(
@@ -185,6 +184,9 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
                 loss_value = loss(W_stokes, rho_stokes, params)
 
             loss_real = tf.math.real(loss_value).numpy()
+            print("loss_real: ", loss_real)
+            print("prev_loss: ", prev_loss)
+            print("prev_loss - loss_real = ", prev_loss - loss_real)
         
             # Check if minimized value has converged within the threshold
             if abs(prev_loss - loss_real) < threshold:
@@ -204,7 +206,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     # Minimize each witness
     # TODO: look into MULTITHREADING or multipooling
     for W_stokes in all_W_stokes:
-        # determine number of parameters to be minimzed
+        # determine number of parameters to be minimized
         num_params = len(signature(W_stokes).parameters)
         
         # initialize bounds for the parameters to be minimized
