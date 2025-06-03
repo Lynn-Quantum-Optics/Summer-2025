@@ -285,7 +285,6 @@ class W3:
         ws = [self.W3_1, self.W3_2, self.W3_3, self.W3_4, self.W3_5, self.W3_6]
 
         stokes = [self.stokes_from_mtx(w(theta)) for w in ws]
-        print("W3 Stokes params: ", stokes)
         return stokes
 
     def get_witnesses(self, return_type, theta=None):
@@ -637,7 +636,6 @@ class W5(W3):
                 self.W5_7, self.W5_8, self.W5_9]
         
         stokes = [self.stokes_from_mtx(w(*params)) for w in w5s]
-        print["W5 Stokes params: ", stokes]
         return stokes
     
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None):
@@ -1129,7 +1127,6 @@ class W8(W5):
                self.W8_31, self.W8_32, self.W8_33, self.W8_34, self.W8_35, self.W8_36]
         
         stokes = [self.stokes_from_mtx(w(*params)) for w in w8s]
-        print("W8 Stokes params: ", stokes)
         return stokes
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
@@ -2522,7 +2519,6 @@ class W7(W8):
                self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
         
         stokes = [self.stokes_from_mtx(w(*params)) for w in w7s]
-        print("W7 Stokes params: ", stokes)
         return stokes
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
