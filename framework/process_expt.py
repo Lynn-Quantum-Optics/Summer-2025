@@ -187,23 +187,22 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print(np.round(rho, 3))
         
         # calculate W and W' theory
+        print("Minimizing witnesses for theoretical data...")
         W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
-        print("Theory Ws computed")
         # TODO: is purity the same as expt_purity? Where to get expt_purity?
-        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, 0.95))
-        print("Adjusted theory Ws computed")
+        print("Minimizing witnesses for adjusted theory data...")
+        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, 0.94))
+
         # calculate W and W' expt
-        # TODO: do minimizations using real values for expt data, check how expec. vals are used
-        # W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
+        print("Minimizing witnesses for experimental data...")
         W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
-        print("Experimental Ws computed")
         
         ## PARSE LISTS ##
         # Theoretical data
         W_min_T, Wp_t1_T, Wp_t2_T, Wp_t3_T, W_name_T, Wp1_name_T, Wp2_name_T, Wp3_name_T, W_param_T, Wp1_param_T, Wp2_param_T, Wp3_param_T = parse_W_ls(W_T_params, W_T_vals)
-        
+
         # Adjusted theory: params are not returned
         W_min_AT, Wp_t1_AT, Wp_t2_AT, Wp_t3_AT, W_name_AT, Wp1_name_AT, Wp2_name_AT, Wp3_name_AT, _, _, _, _ = parse_W_ls(W_AT_params, W_AT_vals)
 
@@ -213,20 +212,32 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # using propagated uncertainty
         W_min_expt = unp.nominal_values(W_expt_ls[0])
         W_min_unc = unp.std_devs(W_expt_ls[0])
-        print("Experimental W3 minimum value:", W_min_expt)
+        print("Theoretical W3 min:", W_min_T)
+        print("Adjusted theory W3 min:", W_min_AT)
+        print("Experimental W3 min:", W_min_expt)
         print("Uncertainty:", W_min_unc)
+
         Wp_t1_expt = unp.nominal_values(W_expt_ls[1])
         Wp_t1_unc = unp.std_devs(W_expt_ls[1])
-        print("Experimental W5 triplet 1 minimum value:", Wp_t1_expt)
+        print("Theoretical W5 triplet 1 min:", Wp_t1_T)
+        print("Adjusted theory W5 triplet 1 min:", Wp_t1_AT)
+        print("Experimental W5 triplet 1 min:", Wp_t1_expt)
         print("Uncertainty:", Wp_t1_unc)
+
         Wp_t2_expt = unp.nominal_values(W_expt_ls[2])
         Wp_t2_unc = unp.std_devs(W_expt_ls[2])
-        print("Experimental W5 triplet 2 minimum value:", Wp_t2_expt)
+        print("Theoretical W5 triplet 2 min:", Wp_t2_T)
+        print("Adjusted theory W5 triplet 2 min:", Wp_t2_AT)
+        print("Experimental W5 triplet 2 min:", Wp_t2_expt)
         print("Uncertainty:", Wp_t2_unc)
+
         Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
-        print("Experimental W5 triplet 3 minimum value:", Wp_t3_expt)
+        print("Theoretical W5 triplet 3 min:", Wp_t3_T)
+        print("Adjusted theory W5 triplet 3 min:", Wp_t3_AT)
+        print("Experimental W5 triplet 3 min:", Wp_t3_expt)
         print("Uncertainty:", Wp_t3_unc)
+
         W_name_expt = W_expt_ls[4]
         Wp1_name_expt = W_expt_ls[5]
         Wp2_name_expt = W_expt_ls[6]
@@ -237,7 +248,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         Wp3_param_expt = W_expt_ls[11]
 
         if eta is not None and chi is not None:
-            adj_fidelity = get_fidelity(adjust_rho(rho_actual, [eta, chi], purity), rho)
+            adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
 
             df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity,
             'W_min_T': W_min_T, 'Wp_t1_T':Wp_t1_T, 'Wp_t2_T':Wp_t2_T, 'Wp_t3_T':Wp_t3_T,'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
