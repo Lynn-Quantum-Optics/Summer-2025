@@ -1,6 +1,6 @@
 """
 Authors: Lev G., Isabel G.
-Last updated: 5/28/2025
+Last updated: 6/3/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
@@ -189,9 +189,8 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # calculate W and W' theory
         print("Minimizing witnesses for theoretical data...")
         W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
-        # TODO: is purity the same as expt_purity? Where to get expt_purity?
         print("Minimizing witnesses for adjusted theory data...")
-        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, 0.94))
+        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, purity))
 
         # calculate W and W' expt
         flat_un_proj = un_proj.flatten()
