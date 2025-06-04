@@ -231,31 +231,32 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         else:
             raise IndexError("ERROR: Witness class not found or out-of-bounds")
 
-        for witness_idx in range(num_witnesses):            
-            # initialize bounds for the parameters to be minimized
-            lower_bound = tf.constant(0.0, dtype=tf.float64)
-            alpha_bound = lower_bound # initialize these upper bounds to
-            beta_bound = lower_bound  #    prevent error in minimization loop
-            gamma_bound = lower_bound
+        # initialize bounds for the parameters to be minimized
+        lower_bound = tf.constant(0.0, dtype=tf.float64)
+        alpha_bound = lower_bound # initialize these upper bounds to
+        beta_bound = lower_bound  #    prevent error in minimization loop
+        gamma_bound = lower_bound
 
-            if num_params == 1:
-                theta_bound = tf.constant(np.pi, dtype=tf.float64)
-            elif num_params == 2:
-                theta_bound = tf.constant(np.pi, dtype=tf.float64)
-                alpha_bound = tf.constant(np.pi, dtype=tf.float64) 
-            elif num_params == 3:
-                theta_bound = tf.constant(np.pi/2, dtype=tf.float64)
-                alpha_bound = tf.constant(2*np.pi, dtype=tf.float64) 
-                beta_bound = tf.constant(2*np.pi, dtype=tf.float64)
-            else:
-                theta_bound = tf.constant(np.pi/2, dtype=tf.float64)
-                alpha_bound = tf.constant(2*np.pi, dtype=tf.float64) 
-                beta_bound = tf.constant(2*np.pi, dtype=tf.float64)
-                gamma_bound = tf.constant(2*np.pi, dtype=tf.float64)
-            
-            
+        if num_params == 1:
+            theta_bound = tf.constant(np.pi, dtype=tf.float64)
+        elif num_params == 2:
+            theta_bound = tf.constant(np.pi, dtype=tf.float64)
+            alpha_bound = tf.constant(np.pi, dtype=tf.float64) 
+        elif num_params == 3:
+            theta_bound = tf.constant(np.pi/2, dtype=tf.float64)
+            alpha_bound = tf.constant(2*np.pi, dtype=tf.float64) 
+            beta_bound = tf.constant(2*np.pi, dtype=tf.float64)
+        else:
+            theta_bound = tf.constant(np.pi/2, dtype=tf.float64)
+            alpha_bound = tf.constant(2*np.pi, dtype=tf.float64) 
+            beta_bound = tf.constant(2*np.pi, dtype=tf.float64)
+            gamma_bound = tf.constant(2*np.pi, dtype=tf.float64)
+
+        # Set the initial "best value" to infinity
+        min_val = float("inf")
+        
+        for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1         
             # Try different random initial guesses and use the best result
-            min_val = float("inf")
             for _ in range(num_guesses):
                 theta = tf.Variable(tf.random.uniform(shape=[], minval=lower_bound, 
                                                     maxval=theta_bound, dtype=tf.float64))
@@ -268,7 +269,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
                 # use the right number of parameters
                 param_vars = [theta, alpha, beta, gamma][:num_params]
-                this_min_params, this_min_val = optimize(W_class(*param_vars)[witness_idx], expt, rho_stokes, param_vars)
+                this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
 
                 if this_min_val < min_val:
                     best_param = this_min_params
@@ -280,7 +281,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             beta = tf.Variable(lower_bound, dtype=tf.float64)
             gamma = tf.Variable(lower_bound, dtype=tf.float64)
             param_vars = [theta, alpha, beta, gamma][:num_params]
-            this_min_params, this_min_val = optimize(W_class(*param_vars)[witness_idx], expt, rho_stokes, param_vars)
+            this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
             if this_min_val < min_val:
                     best_param = this_min_params
                     min_val = this_min_val
@@ -291,7 +292,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             beta = tf.Variable(beta_bound, dtype=tf.float64)
             gamma = tf.Variable(gamma_bound, dtype=tf.float64)
             param_vars = [theta, alpha, beta, gamma][:num_params]
-            this_min_params, this_min_val = optimize(W_class(*param_vars)[witness_idx], expt, rho_stokes, param_vars)
+            this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
             if this_min_val < min_val:
                     best_param = this_min_params
                     min_val = this_min_val

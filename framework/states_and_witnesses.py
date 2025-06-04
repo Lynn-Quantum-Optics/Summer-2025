@@ -277,14 +277,21 @@ class W3:
         return op.partial_transpose(phi6 * op.adjoint(phi6))
     
     
-    def W3_stokes(self, theta):
+    def W3_stokes(self, idx, theta):
         """
         Returns the Stokes parameters for all W3s
+
+        Params:
+        idx: the superscript of the W3 witness to get stokes for
+        theta: the minimization parameter
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
         """
         assert theta is not None, "ERROR: theta not given"
         ws = [self.W3_1, self.W3_2, self.W3_3, self.W3_4, self.W3_5, self.W3_6]
 
-        stokes = [self.stokes_from_mtx(w(theta)) for w in ws]
+        stokes = self.stokes_from_mtx(ws[idx-1](theta))
         return stokes
 
     def get_witnesses(self, return_type, theta=None):
@@ -626,9 +633,16 @@ class W5(W3):
         rotation = np.kron(R_y(alpha), R_y(beta))
         return op.rotate_m(w1, rotation)
     
-    def W5_stokes(self, theta, alpha, beta):
+    def W5_stokes(self, idx, theta, alpha, beta):
         """
         Returns the Stokes parameters for all W5s
+
+        Params:
+        idx: the superscript of the W5 witness to get stokes for
+        theta, alpha, beta: the minimization parameters
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
         """
         assert theta is not None, "ERROR: theta not given"
         assert alpha is not None, "ERROR: alpha not given"
@@ -638,13 +652,11 @@ class W5(W3):
                 self.W5_4, self.W5_5, self.W5_6,
                 self.W5_7, self.W5_8, self.W5_9]
         
-        # initialize stokes as an array of 9 NoneType elements to be overwritten
-        stokes = [None] * 9
-        for i, W in enumerate(w5s):
-                if i == 2 or i == 5 or i == 8:
-                    stokes[i] = self.stokes_from_mtx(W(theta, alpha, beta))
-                else:
-                    stokes[i] = self.stokes_from_mtx(W(theta, alpha))
+        # witnesses 3, 6, and 9 need beta (NOTE: idx is one-indexed)
+        if idx % 3 == 0:
+            stokes = self.stokes_from_mtx(w5s[idx-1](theta, alpha, beta))
+        else:
+            stokes = self.stokes_from_mtx(w5s[idx-1](theta, alpha))
 
         return stokes
     
@@ -1124,9 +1136,16 @@ class W8(W5):
         return op.rotate_m(w5_3, rotation)
     
 
-    def W8_stokes(self, theta, alpha, beta, gamma):
+    def W8_stokes(self, idx, theta, alpha, beta, gamma):
         """
         Returns the Stokes parameters for all W8s
+
+        Params:
+        idx: the superscript of the W8 witness to get stokes for
+        theta, alpha, beta, gamma: the minimization parameters
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
         """
         assert theta is not None, "ERROR: theta not given"
         assert alpha is not None, "ERROR: alpha not given"
@@ -1140,14 +1159,11 @@ class W8(W5):
                self.W8_25, self.W8_26, self.W8_27, self.W8_28, self.W8_29, self.W8_30,
                self.W8_31, self.W8_32, self.W8_33, self.W8_34, self.W8_35, self.W8_36]
         
-        # initialize stokes as an array of 36 NoneType elements to be overwritten
-        stokes = [None] * 36
-        for i, W in enumerate(w8s):
-                # every 3rd witness needs gamma (NOTE: i is zero-indexed)
-                if i % 3 == 2:
-                    stokes[i] = self.stokes_from_mtx(W(theta, alpha, beta, gamma))
-                else:
-                    stokes[i] = self.stokes_from_mtx(W(theta, alpha, beta))
+        # every 3rd witness needs gamma (NOTE: idx is one-indexed)
+        if idx % 3 == 0:
+            stokes = self.stokes_from_mtx(w8s[idx-1](theta, alpha, beta, gamma))
+        else:
+            stokes = self.stokes_from_mtx(w8s[idx-1](theta, alpha, beta))
         
         return stokes
 
@@ -1172,7 +1188,9 @@ class W8(W5):
                self.W8_25, self.W8_26, self.W8_27, self.W8_28, self.W8_29, self.W8_30,
                self.W8_31, self.W8_32, self.W8_33, self.W8_34, self.W8_35, self.W8_36]
         
-        stokes = self.W8_stokes
+        stokes = [None] * 36
+        for i in range(36):
+            stokes[i] = self.W8_stokes(i, theta, alpha, beta, gamma)
         
         if return_type == "stokes":
             return stokes
@@ -2516,9 +2534,16 @@ class W7(W8):
         return
     
     
-    def W7_stokes(self, theta, alpha, beta, gamma):
+    def W7_stokes(self, idx, theta, alpha, beta, gamma):
         """
         Returns the Stokes parameters for all W7s
+
+        Params:
+        idx: the superscript of the W7 witness to get stokes for
+        theta, alpha, beta, gamma: the minimization parameters
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
         """
         assert theta is not None, "ERROR: theta not given"
         assert alpha is not None, "ERROR: alpha not given"
@@ -2543,15 +2568,12 @@ class W7(W8):
                self.W7_91, self.W7_92, self.W7_93, self.W7_94, self.W7_95, self.W7_96,
                self.W7_97, self.W7_98, self.W7_99, self.W7_100, self.W7_101, self.W7_102,
                self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
-        
-        # initialize stokes as an array of 108 NoneType elements to be overwritten
-        stokes = [None] * 108
-        for i, W in enumerate(w7s):
-                # every 3rd witness needs gamma (NOTE: i is zero-indexed)
-                if i % 3 == 2:
-                    stokes[i] = self.stokes_from_mtx(W(theta, alpha, beta, gamma))
-                else:
-                    stokes[i] = self.stokes_from_mtx(W(theta, alpha, beta))
+
+        # every 3rd witness needs gamma (NOTE: idx is one-indexed)
+        if idx % 3 == 0:
+            stokes = self.stokes_from_mtx(w7s[idx-1](theta, alpha, beta, gamma))
+        else:
+            stokes = self.stokes_from_mtx(w7s[idx-1](theta, alpha, beta))
         return stokes
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
@@ -2587,7 +2609,9 @@ class W7(W8):
                self.W7_97, self.W7_98, self.W7_99, self.W7_100, self.W7_101, self.W7_102,
                self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
         
-        stokes = self.W7_stokes
+        stokes = [None] * 108
+        for i in range(108):
+            stokes[i] = self.W7_stokes(i, theta, alpha, beta, gamma)
         
         if return_type == "stokes":
             return stokes
