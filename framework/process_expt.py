@@ -115,44 +115,66 @@ def parse_W_ls(W_params, W_vals):
                 W_params: a list of the parameters used to minimize each witness.
                 W_vals: a list of the minimum expectation value of each witness.
             """
-            W_names = ['W3_1','W3_2', 'W3_3', 'W3_4', 'W3_5', 'W3_6', 'W5_1', 'W5_2', 'W5_3', 'W5_4', 'W5_5', 'W5_6', 'W5_7', 'W5_8', 'W5_9']
+
+            W_names = []
+            for i in range(1, 7):
+                W_names.append(f'W3_{i}')
+            for i in range(1, 10):
+                W_names.append(f'W5_{i}')
+            for i in range(1, 109):
+                W_names.append(f'W7_{i}')
+            for i in range(1, 37):
+                W_names.append(f'W8_{i}')
 
             # Map the names of the W3s to their minimum expectation values
             W3_vals_dict = dict(zip(W_names[:6], W_vals[:6]))
             W3_params_dict = dict(zip(W_names[:6], W_params[:6]))
+            W3_min_name = min(W3_vals_dict, key=W3_vals_dict.get)
 
-            # Search the dictionary for the minimum W3 and save its name, expec. value, and minimization param
-            W3_name = min(W3_vals_dict, key=W3_vals_dict.get)
-            W3_min = W3_vals_dict[W3_name]
-            W3_param = W3_params_dict[W3_name]
+            # Search the dictionary for the minimum W3 and save its name,
+            # expec. value, and minimization param
+            W3_returns = {
+                'name': W3_min_name,
+                'min': W3_vals_dict[W3_min_name],
+                'param': W3_params_dict[W3_min_name]
+            }
 
             # Creating W5 dictionaries
             # Triplet 1
             W5t1_vals_dict = dict(zip(W_names[6:9], W_vals[6:9]))
             W5t1_params_dict = dict(zip(W_names[6:9], W_params[6:9]))
+            W5t1_min_name = min(W5t1_vals_dict, key=W5t1_vals_dict.get)
 
             #Triplet 2
             W5t2_vals_dict = dict(zip(W_names[9:12], W_vals[9:12]))
             W5t2_params_dict = dict(zip(W_names[9:12], W_params[9:12]))
+            W5t2_min_name = min(W5t2_vals_dict, key=W5t2_vals_dict.get)
 
             #Triplet 3
             W5t3_vals_dict = dict(zip(W_names[12:15], W_vals[12:15]))
             W5t3_params_dict = dict(zip(W_names[12:15], W_params[12:15]))
+            W5t3_min_name = min(W5t3_vals_dict, key=W5t3_vals_dict.get)
 
             # Finding the minimum for each W5 triplet
-            W5_t1_name = min(W5t1_vals_dict, key=W5t1_vals_dict.get)
-            W5_t1_min = W5t1_vals_dict[W5_t1_name]
-            W5_t1_param = W5t1_params_dict[W5_t1_name]
+            W5_returns = {
+                't1': {
+                    'name': W5t1_min_name,
+                    'min': W5t1_vals_dict[W5t1_min_name],
+                    'param': W5t1_params_dict[W5t1_min_name]
+                },
+                't2': {
+                    'name': W5t2_min_name,
+                    'min': W5t2_vals_dict[W5t2_min_name],
+                    'param': W5t2_params_dict[W5t2_min_name],
+                },
+                't3': {
+                    'name': W5t3_min_name,
+                    'min': W5t3_vals_dict[W5t3_min_name],
+                    'param': W5t3_params_dict[W5t3_min_name]
+                }
+            }
 
-            W5_t2_name = min(W5t2_vals_dict, key=W5t2_vals_dict.get)
-            W5_t2_min = W5t2_vals_dict[W5_t2_name]
-            W5_t2_param = W5t2_params_dict[W5_t2_name]
-
-            W5_t3_name = min(W5t3_vals_dict, key=W5t3_vals_dict.get)
-            W5_t3_min = W5t3_vals_dict[W5_t3_name]
-            W5_t3_param = W5t3_params_dict[W5_t3_name]
-
-            return W3_min, W5_t1_min, W5_t2_min, W5_t3_min, W3_name, W5_t1_name, W5_t2_name, W5_t3_name, W3_param, W5_t1_param, W5_t2_param, W5_t3_param
+            return W3_returns, W5_returns
 
 def analyze_rhos(filenames, rho_actuals, id='id'):
     '''Extending get_rho_from_file to include multiple files; 
@@ -195,65 +217,83 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # calculate W and W' expt
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
-        print("Minimizing witnesses for experimental data...")
+        print("Minimizing witnesses for experimental data...\n")
         W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
         
         ## PARSE LISTS ##
         # Theoretical data
-        W_min_T, Wp_t1_T, Wp_t2_T, Wp_t3_T, W_name_T, Wp1_name_T, Wp2_name_T, Wp3_name_T, W_param_T, Wp1_param_T, Wp2_param_T, Wp3_param_T = parse_W_ls(W_T_params, W_T_vals)
+        W3_T, W5_T = parse_W_ls(W_T_params, W_T_vals)
 
         # Adjusted theory: params are not returned
-        W_min_AT, Wp_t1_AT, Wp_t2_AT, Wp_t3_AT, W_name_AT, Wp1_name_AT, Wp2_name_AT, Wp3_name_AT, _, _, _, _ = parse_W_ls(W_AT_params, W_AT_vals)
+        W3_AT, W5_AT = parse_W_ls(W_AT_params, W_AT_vals)
 
         # Experimental data
-        W_expt_ls = list(parse_W_ls(W_E_params, W_E_vals))
+        W3_E, W5_E = parse_W_ls(W_E_params, W_E_vals)
 
-        # using propagated uncertainty
-        W_min_expt = unp.nominal_values(W_expt_ls[0])
-        W_min_unc = unp.std_devs(W_expt_ls[0])
-        print("Theoretical W3 min:", W_min_T)
-        print("Adjusted theory W3 min:", W_min_AT)
-        print("Experimental W3 min:", W_min_expt)
-        print("Uncertainty:", W_min_unc)
+        # TODO: fix uncertainties
+        print("Theoretical W3 min:", W3_T['min'])
+        print("Adjusted theory W3 min:", W3_AT['min'])
+        print("Experimental W3 min:", W3_E['min'], "\n")
+        #W3_E['min'] = unp.nominal_value(W3_E['min'])
+        #print("Experimental W3 min:", W3_E['min'])
+        #W3_E['unc'] = unp.std_devs(W3_E['min'])
+        #print("Uncertainty:", W3_E['unc'])
 
-        Wp_t1_expt = unp.nominal_values(W_expt_ls[1])
-        Wp_t1_unc = unp.std_devs(W_expt_ls[1])
-        print("Theoretical W5 triplet 1 min:", Wp_t1_T)
-        print("Adjusted theory W5 triplet 1 min:", Wp_t1_AT)
-        print("Experimental W5 triplet 1 min:", Wp_t1_expt)
-        print("Uncertainty:", Wp_t1_unc)
+        #Wp_t1_expt = unp.nominal_value(W_expt_ls[1])
+        print("Theoretical W5 triplet 1 min:", W5_T['t1']['min'])
+        print("Adjusted theory W5 triplet 1 min:", W5_AT['t1']['min'])
+        print("Experimental W5 triplet 1 min:", W5_E['t1']['min'], "\n")
+        #W5_E['t1']['min'] = unp.nominal_value(W5_E['t1']['min'])
+        #print("Experimental W5 triplet 1 min:", W5_E['t1']['min'])
+        #W5_E['t1']['unc'] = unp.std_devs(W5_E['t1']['min'])
+        #print("Uncertainty:", W5_E['t1']['unc'])
 
-        Wp_t2_expt = unp.nominal_values(W_expt_ls[2])
-        Wp_t2_unc = unp.std_devs(W_expt_ls[2])
-        print("Theoretical W5 triplet 2 min:", Wp_t2_T)
-        print("Adjusted theory W5 triplet 2 min:", Wp_t2_AT)
-        print("Experimental W5 triplet 2 min:", Wp_t2_expt)
-        print("Uncertainty:", Wp_t2_unc)
+        print("Theoretical W5 triplet 2 min:", W5_T['t2']['min'])
+        print("Adjusted theory W5 triplet 2 min:", W5_AT['t2']['min'])
+        print("Experimental W5 triplet 2 min:", W5_E['t2']['min'], "\n")
+        #W5_E['t2']['min'] = unp.nominal_value(W5_E['t2']['min'])
+        #print("Experimental W5 triplet 2 min:", W5_E['t2']['min'])
+        #W5_E['t2']['unc'] = unp.std_devs(W5_E['t2']['min'])
+        #print("Uncertainty:", W5_E['t2']['unc'])
 
-        Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
-        Wp_t3_unc = unp.std_devs(W_expt_ls[3])
-        print("Theoretical W5 triplet 3 min:", Wp_t3_T)
-        print("Adjusted theory W5 triplet 3 min:", Wp_t3_AT)
-        print("Experimental W5 triplet 3 min:", Wp_t3_expt)
-        print("Uncertainty:", Wp_t3_unc)
-
-        W_name_expt = W_expt_ls[4]
-        Wp1_name_expt = W_expt_ls[5]
-        Wp2_name_expt = W_expt_ls[6]
-        Wp3_name_expt = W_expt_ls[7]
-        W_param_expt = W_expt_ls[8]
-        Wp1_param_expt = W_expt_ls[9]
-        Wp2_param_expt = W_expt_ls[10]
-        Wp3_param_expt = W_expt_ls[11]
+        print("Theoretical W5 triplet 3 min:", W5_T['t3']['min'])
+        print("Adjusted theory W5 triplet 3 min:", W5_AT['t3']['min'])
+        print("Experimental W5 triplet 3 min:", W5_E['t3']['min'])
+        #W5_E['t3']['min'] = unp.nominal_value(W5_E['t3']['min'])
+        #print("Experimental W5 triplet 3 min:", W5_E['t3']['min'])
+        #W5_E['t3']['unc'] = unp.std_devs(W5_E['t3']['min'])
+        #print("Uncertainty:", W5_E['t3']['unc'])
 
         if eta is not None and chi is not None:
             adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
 
-            df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'eta':eta, 'chi':chi, 'fidelity':fidelity, 'purity':purity, 'AT_fidelity':adj_fidelity,
-            'W_min_T': W_min_T, 'Wp_t1_T':Wp_t1_T, 'Wp_t2_T':Wp_t2_T, 'Wp_t3_T':Wp_t3_T,'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
+            df = pd.concat([df, pd.DataFrame.from_records([{
+                'trial':trial, 'eta':eta, 'chi':chi,
+                'fidelity':fidelity, 'purity':purity, 'AT fidelity':adj_fidelity,
+                'W3 min T': W3_T['min'], 'W3 min AT': W3_AT['min'],
+                'W3 min E': W3_E['min'], 'W3 unc E': W3_E['unc'],
+                'W5 t1 min T': W5_T['t1']['min'], 'W5 t1 min AT': W5_AT['t1']['min'], 
+                'W5 t1 min E': W5_E['t1']['min'], 'W5 t1 unc E': W5_E['t1']['unc'], 
+                'W5 t2 min T': W5_T['t2']['min'], 'W5 t2 min AT': W5_AT['t2']['min'], 
+                'W5 t2 min E': W5_E['t2']['min'], 'W5 t2 unc E': W5_E['t2']['unc'], 
+                'W5 t3 min T': W5_T['t3']['min'], 'W5 t3 min AT': W5_AT['t3']['min'], 
+                'W5 t3 min E': W5_E['t3']['min'], 'W5 t3 unc E': W5_E['t3']['unc'],
+                'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]
+            }])])
 
         else:
-            df = pd.concat([df, pd.DataFrame.from_records([{'trial':trial, 'fidelity':fidelity, 'purity':purity, 'W_min_AT':W_min_AT, 'W_min_expt':W_min_expt, 'W_min_unc':W_min_unc, 'Wp_t1_AT':Wp_t1_AT, 'Wp_t2_AT':Wp_t2_AT, 'Wp_t3_AT':Wp_t3_AT, 'Wp_t1_expt':Wp_t1_expt, 'Wp_t1_unc':Wp_t1_unc, 'Wp_t2_expt':Wp_t2_expt, 'Wp_t2_unc':Wp_t2_unc, 'Wp_t3_expt':Wp_t3_expt, 'Wp_t3_unc':Wp_t3_unc, 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]}])])
+            df = pd.concat([df, pd.DataFrame.from_records([{
+                'trial':trial, 'fidelity':fidelity, 'purity':purity,
+                'W3 min T': W3_T['min'], 'W3 min AT': W3_AT['min'],
+                'W3 min E': W3_E['min'], 'W3 unc E': W3_E['unc'],
+                'W5 t1 min T': W5_T['t1']['min'], 'W5 t1 min AT': W5_AT['t1']['min'], 
+                'W5 t1 min E': W5_E['t1']['min'], 'W5 t1 unc E': W5_E['t1']['unc'], 
+                'W5 t2 min T': W5_T['t2']['min'], 'W5 t2 min AT': W5_AT['t2']['min'], 
+                'W5 t2 min E': W5_E['t2']['min'], 'W5 t2 unc E': W5_E['t2']['unc'], 
+                'W5 t3 min T': W5_T['t3']['min'], 'W5 t3 min AT': W5_AT['t3']['min'], 
+                'W5 t3 min E': W5_E['t3']['min'], 'W5 t3 unc E': W5_E['t3']['unc'],
+                'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]
+            }])])
 
     # save df
     print('saving dataframe...')
@@ -280,7 +320,7 @@ def make_plots_E0(dfname):
         purity_eta = df_eta['purity'].to_numpy()
         fidelity_eta = df_eta['fidelity'].to_numpy()
         chi_eta = df_eta['chi'].to_numpy()
-        adj_fidelity = df_eta['AT_fidelity'].to_numpy()
+        adj_fidelity = df_eta['AT fidelity'].to_numpy()
 
         # # do purity and fidelity plots
         # ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
@@ -290,36 +330,41 @@ def make_plots_E0(dfname):
         # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
         # extract witness values
-        W_min_T = df_eta['W_min_T'].to_numpy()
-        W_min_AT = df_eta['W_min_AT'].to_numpy()
-        W_min_expt = df_eta['W_min_expt'].to_numpy()
-        W_min_unc = df_eta['W_min_unc'].to_numpy()
+        W3_min_T = df_eta['W3 min T'].to_numpy()
+        W3_min_AT = df_eta['W3 min AT'].to_numpy()
+        W3_min_E = df_eta['W3 min E'].to_numpy()
+        W3_unc = df_eta['W3 unc E'].to_numpy()
 
-        Wp_T = df_eta[['Wp_t1_T', 'Wp_t2_T', 'Wp_t3_T']].min(axis=1).to_numpy()
-        Wp_AT = df_eta[['Wp_t1_AT', 'Wp_t2_AT', 'Wp_t3_AT']].min(axis=1).to_numpy()
-        Wp_expt = df_eta[['Wp_t1_expt', 'Wp_t2_expt', 'Wp_t3_expt']].min(axis=1).to_numpy()
-        Wp_expt_min = df_eta[['Wp_t1_expt', 'Wp_t2_expt', 'Wp_t3_expt']].idxmin(axis=1)
-        Wp_unc = np.where(Wp_expt_min == 'Wp_t1_expt', df_eta['Wp_t1_unc'], np.where(Wp_expt_min == 'Wp_t2_expt', df_eta['Wp_t2_unc'], df_eta['Wp_t3_unc']))
+        W5_min_T = df_eta[['W5 t1 min T', 'W5 t2 min T', 'W5 t3 min T']].min(axis=1).to_numpy()
+        W5_min_AT = df_eta[['W5 t1 min AT', 'W5 t2 min AT', 'W5 t3 min AT']].min(axis=1).to_numpy()
+        W5_min_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].min(axis=1).to_numpy()
+        W5_best_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].idxmin(axis=1)
+        W5_unc = np.where(W5_best_E == 'W5 t1 min E', df_eta['W5 t1 unc E'], np.where(W5_best_E == 'W5 t2 min E', df_eta['W5 t2 unc E'], df_eta['W5 t3 unc E']))
 
         # plot curves for T and AT
         def sinsq(x, a, b, c, d):
             return a*np.sin(b*np.deg2rad(x) + c)**2 + d
 
-        popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T, maxfev = 10000)
-        popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT, maxfev = 10000)
-        #print('popt_W are:', popt_W_AT_eta) 
-        popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T, maxfev = 10000)
-        popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT, maxfev = 10000)
+        """
+        NOTE: popt is a list of optimal values for eta and chi so that the sum of the
+              squared residuals of f(xdata, *popt) - ydata is minimized, while pcov is a
+              matrix representing the estimated approximate covariance of popt
+        """
+        popt_W3_T_eta, pcov_W3_T_eta = curve_fit(sinsq, chi_eta, W3_min_T, maxfev = 10000)
+        popt_W3_AT_eta, pcov_W3_AT_eta = curve_fit(sinsq, chi_eta, W3_min_AT, maxfev = 10000)
+        #print('popt_W are:', popt_W_AT_eta)
+        popt_W5_T_eta, pcov_W5_T_eta = curve_fit(sinsq, chi_eta, W5_min_T, maxfev = 10000)
+        popt_W5_AT_eta, pcov_W5_AT_eta = curve_fit(sinsq, chi_eta, W5_min_AT, maxfev = 10000)
         
         chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
-        ax.errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue', markersize=10)
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_{T}$', color='navy')
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+        ax.errorbar(chi_eta, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue', markersize=10)
 
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
-        ax.errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon', markersize=10)
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_{T}'$", color='crimson')
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
+        ax.errorbar(chi_eta, W5_min_E, yerr=W5_unc, fmt='o', color='salmon', markersize=10)
         #ax.set_title(f'$\eta = 45\degree$', fontsize=18)
         ax.set_ylabel('Witness value', fontsize=20)
         ax.tick_params(axis='both', which='major', labelsize=20)
@@ -340,7 +385,7 @@ def make_plots_E0(dfname):
             purity_eta = df_eta['purity'].to_numpy()
             fidelity_eta = df_eta['fidelity'].to_numpy()
             chi_eta = df_eta['chi'].to_numpy()
-            adj_fidelity = df_eta['AT_fidelity'].to_numpy()
+            adj_fidelity = df_eta['AT fidelity'].to_numpy()
 
             # # do purity and fidelity plots
             # ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
@@ -350,35 +395,35 @@ def make_plots_E0(dfname):
             # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
             # extract witness values
-            W_min_T = df_eta['W_min_T'].to_numpy()
-            W_min_AT = df_eta['W_min_AT'].to_numpy()
-            W_min_expt = df_eta['W_min_expt'].to_numpy()
-            W_min_unc = df_eta['W_min_unc'].to_numpy()
+            W3_min_T = df_eta['W3 min T'].to_numpy()
+            W3_min_AT = df_eta['W3 min AT'].to_numpy()
+            W3_min_E = df_eta['W3 min E'].to_numpy()
+            W3_unc = df_eta['W3 unc E'].to_numpy()
 
-            Wp_T = df_eta[['Wp_t1_T', 'Wp_t2_T', 'Wp_t3_T']].min(axis=1).to_numpy()
-            Wp_AT = df_eta[['Wp_t1_AT', 'Wp_t2_AT', 'Wp_t3_AT']].min(axis=1).to_numpy()
-            Wp_expt = df_eta[['Wp_t1_expt', 'Wp_t2_expt', 'Wp_t3_expt']].min(axis=1).to_numpy()
-            Wp_expt_min = df_eta[['Wp_t1_expt', 'Wp_t2_expt', 'Wp_t3_expt']].idxmin(axis=1)
-            Wp_unc = np.where(Wp_expt_min == 'Wp_t1_expt', df_eta['Wp_t1_unc'], np.where(Wp_expt_min == 'Wp_t2_expt', df_eta['Wp_t2_unc'], df_eta['Wp_t3_unc']))
+            W5_min_T = df_eta[['W5 t1 min T', 'W5 t2 min T', 'W5 t3 min T']].min(axis=1).to_numpy()
+            W5_min_AT = df_eta[['W5 t1 min AT', 'W5 t2 min AT', 'W5 t3 min AT']].min(axis=1).to_numpy()
+            W5_min_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].min(axis=1).to_numpy()
+            W5_best_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].idxmin(axis=1)
+            W5_unc = np.where(W5_best_E == 'W5 t1 min E', df_eta['W5 t1 unc E'], np.where(W5_best_E == 'W5 t2 min E', df_eta['W5 t2 unc E'], df_eta['W5 t3 unc E']))
 
             # plot curves for T and AT
             def sinsq(x, a, b, c, d):
                 return a*np.sin(b*np.deg2rad(x) + c)**2 + d
-            popt_W_T_eta, pcov_W_T_eta = curve_fit(sinsq, chi_eta, W_min_T)
-            popt_W_AT_eta, pcov_W_AT_eta = curve_fit(sinsq, chi_eta, W_min_AT)
+            popt_W3_T_eta, pcov_W3_T_eta = curve_fit(sinsq, chi_eta, W3_min_T)
+            popt_W3_AT_eta, pcov_W3_AT_eta = curve_fit(sinsq, chi_eta, W3_min_AT)
 
-            popt_Wp_T_eta, pcov_Wp_T_eta = curve_fit(sinsq, chi_eta, Wp_T)
-            popt_Wp_AT_eta, pcov_Wp_AT_eta = curve_fit(sinsq, chi_eta, Wp_AT)
+            popt_W5_T_eta, pcov_W5_T_eta = curve_fit(sinsq, chi_eta, W5_min_T)
+            popt_W5_AT_eta, pcov_W5_AT_eta = curve_fit(sinsq, chi_eta, W5_min_AT)
 
             chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_T_eta), label='$W_T$', color='navy')
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
-            ax[i].errorbar(chi_eta, W_min_expt, yerr=W_min_unc, fmt='o', color='slateblue')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_T$', color='navy')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+            ax[i].errorbar(chi_eta, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue')
 
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_T_eta), label="$W_{T}'$", color='crimson')
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_Wp_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
-            ax[i].errorbar(chi_eta, Wp_expt, yerr=Wp_unc, fmt='o', color='salmon')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_{T}'$", color='crimson')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
+            ax[i].errorbar(chi_eta, W5_min_E, yerr=W5_unc, fmt='o', color='salmon')
 
             ax[i].set_title('$\eta = 30\degree$', fontsize=33)
             ax[i].set_ylabel('Witness value', fontsize=31)
