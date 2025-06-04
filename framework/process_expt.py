@@ -236,6 +236,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Experimental W3 min:", W3_E['min'], "\n")
         #W3_E['min'] = unp.nominal_value(W3_E['min'])
         #print("Experimental W3 min:", W3_E['min'])
+        W3_E['unc'] = 0.0
         #W3_E['unc'] = unp.std_devs(W3_E['min'])
         #print("Uncertainty:", W3_E['unc'])
 
@@ -245,6 +246,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Experimental W5 triplet 1 min:", W5_E['t1']['min'], "\n")
         #W5_E['t1']['min'] = unp.nominal_value(W5_E['t1']['min'])
         #print("Experimental W5 triplet 1 min:", W5_E['t1']['min'])
+        W5_E['t1']['unc'] = 0.0
         #W5_E['t1']['unc'] = unp.std_devs(W5_E['t1']['min'])
         #print("Uncertainty:", W5_E['t1']['unc'])
 
@@ -253,6 +255,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Experimental W5 triplet 2 min:", W5_E['t2']['min'], "\n")
         #W5_E['t2']['min'] = unp.nominal_value(W5_E['t2']['min'])
         #print("Experimental W5 triplet 2 min:", W5_E['t2']['min'])
+        W5_E['t2']['unc'] = 0.0
         #W5_E['t2']['unc'] = unp.std_devs(W5_E['t2']['min'])
         #print("Uncertainty:", W5_E['t2']['unc'])
 
@@ -261,9 +264,12 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Experimental W5 triplet 3 min:", W5_E['t3']['min'])
         #W5_E['t3']['min'] = unp.nominal_value(W5_E['t3']['min'])
         #print("Experimental W5 triplet 3 min:", W5_E['t3']['min'])
+        W5_E['t3']['unc'] = 0.0
         #W5_E['t3']['unc'] = unp.std_devs(W5_E['t3']['min'])
         #print("Uncertainty:", W5_E['t3']['unc'])
 
+        # TODO: use pd.insert() to avoid redundancy in this "if" statement
+        # also look into pd.DataFrame.from_dict() for nested dictionaries
         if eta is not None and chi is not None:
             adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
 
