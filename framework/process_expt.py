@@ -1,6 +1,6 @@
 """
 Authors: Lev G., Isabel G.
-Last updated: 6/3/2025
+Last updated: 6/5/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
@@ -42,7 +42,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
     so will recalculate the correct density matrix; ** the one saved in the file as the theoretical
     density matrix is incorrect **
     --
-    Parameters
+    Parameters:
         filename : str, Name of file to read in
         verbose : bool, Whether to print out results
         angles: list, List of angles used in the experiment. If not None, will assume angles provided in
@@ -108,12 +108,14 @@ def get_fidelity(rho1, rho2):
         print('rho2', rho2)
         return 1e-5
 
-def parse_W_ls(W_params, W_vals):
+def parse_W_ls(W_params, W_vals, do_W7s_W8s, W_unc=None):
             """
             A function to parse the lists of outputs from minimize_witnesses.
-            Inputs:
+            Parameters:
                 W_params: a list of the parameters used to minimize each witness.
                 W_vals: a list of the minimum expectation value of each witness.
+                do_W7s_W8s: a boolean indicating whether or not W7s and W8s were calculated.
+                W_unc (optional): a list of experimental uncertainties for the expectation values.
             """
 
             W_names = []
@@ -126,9 +128,11 @@ def parse_W_ls(W_params, W_vals):
             for i in range(1, 37):
                 W_names.append(f'W8_{i}')
 
+            # Map the names of all witnesses to their minimization params
+            W_params_dict = dict(zip(W_names, W_params))
+
             # Map the names of the W3s to their minimum expectation values
             W3_vals_dict = dict(zip(W_names[:6], W_vals[:6]))
-            W3_params_dict = dict(zip(W_names[:6], W_params[:6]))
             W3_min_name = min(W3_vals_dict, key=W3_vals_dict.get)
 
             # Search the dictionary for the minimum W3 and save its name,
@@ -136,55 +140,95 @@ def parse_W_ls(W_params, W_vals):
             W3_returns = {
                 'name': W3_min_name,
                 'min': W3_vals_dict[W3_min_name],
-                'param': W3_params_dict[W3_min_name]
+                'param': W_params_dict[W3_min_name]
             }
 
             # Creating W5 dictionaries
             # Triplet 1
             W5t1_vals_dict = dict(zip(W_names[6:9], W_vals[6:9]))
-            W5t1_params_dict = dict(zip(W_names[6:9], W_params[6:9]))
             W5t1_min_name = min(W5t1_vals_dict, key=W5t1_vals_dict.get)
 
             #Triplet 2
             W5t2_vals_dict = dict(zip(W_names[9:12], W_vals[9:12]))
-            W5t2_params_dict = dict(zip(W_names[9:12], W_params[9:12]))
             W5t2_min_name = min(W5t2_vals_dict, key=W5t2_vals_dict.get)
 
             #Triplet 3
             W5t3_vals_dict = dict(zip(W_names[12:15], W_vals[12:15]))
-            W5t3_params_dict = dict(zip(W_names[12:15], W_params[12:15]))
             W5t3_min_name = min(W5t3_vals_dict, key=W5t3_vals_dict.get)
 
-            # Finding the minimum for each W5 triplet
+            # Storing minimum data for each W5 triplet
             W5_returns = {
                 't1': {
                     'name': W5t1_min_name,
                     'min': W5t1_vals_dict[W5t1_min_name],
-                    'param': W5t1_params_dict[W5t1_min_name]
+                    'params': W_params_dict[W5t1_min_name]
                 },
                 't2': {
                     'name': W5t2_min_name,
                     'min': W5t2_vals_dict[W5t2_min_name],
-                    'param': W5t2_params_dict[W5t2_min_name],
+                    'params': W_params_dict[W5t2_min_name],
                 },
                 't3': {
                     'name': W5t3_min_name,
                     'min': W5t3_vals_dict[W5t3_min_name],
-                    'param': W5t3_params_dict[W5t3_min_name]
+                    'params': W_params_dict[W5t3_min_name]
                 }
             }
+
+            # Handle uncertainties for experimental data
+            if W_unc is not None:
+                W3_unc_dict = dict(zip(W_names[:6], W_unc[:6]))
+                W3_returns['unc'] = W3_unc_dict[W3_min_name]
+
+                W5_unc_dict = dict(zip(W_names[6:15], W_unc[6:15]))
+                W5_returns['t1']['unc'] = W5_unc_dict[W5t1_min_name]
+                W5_returns['t2']['unc'] = W5_unc_dict[W5t2_min_name]
+                W5_returns['t3']['unc'] = W5_unc_dict[W5t3_min_name]
+            
+            # If we calculated W7s and W8s, create their dictionaries
+            # TODO: decide how we want to group these for analysis
+            if do_W7s_W8s:
+                # W7s
+                W7_vals_dict = dict(zip(W_names[15:123], W_vals[15:123]))
+                W7_min_name = min(W7_vals_dict, key=W7_vals_dict.get)
+
+                W7_returns = {
+                    'name': W7_min_name,
+                    'min': W7_vals_dict[W7_min_name],
+                    'param': W_params_dict[W7_min_name]
+                }
+
+                # W8s
+                W8_vals_dict = dict(zip(W_names[123:159], W_vals[123:159]))
+                W8_min_name = min(W8_vals_dict, key=W8_vals_dict.get)
+
+                W8_returns = {
+                    'name': W8_min_name,
+                    'min': W8_vals_dict[W8_min_name],
+                    'param': W_params_dict[W8_min_name]
+                }
+
+                # Handle uncertainties for experimental data
+                if W_unc is not None:
+                    W7_unc_dict = dict(zip(W_names[15:123], W_unc[15:123]))
+                    W7_returns['unc'] = W7_unc_dict[W7_min_name]
+
+                    W8_unc_dict = dict(zip(W_names[123:159], W_unc[123:159]))
+                    W8_returns['unc'] = W8_unc_dict[W8_min_name]
+                
+                return W3_returns, W5_returns, W7_returns, W8_returns
 
             return W3_returns, W5_returns
 
 def analyze_rhos(filenames, rho_actuals, id='id'):
     '''Extending get_rho_from_file to include multiple files; 
     __
-    inputs:
+    Parameters:
         filenames: list of filenames to analyze
         settings: dict of settings for the experiment
         id: str, special identifier of experiment; used for naming the df
     __
-    returns: df with:
+    Returns: df with:
         - trial number
         - eta (if they exist)
         - chi (if they exist)
@@ -208,6 +252,10 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print('Experimental rho is:')
         print(np.round(rho, 3))
         
+        #########################
+        ## MINIMIZING WITNESSES
+        #########################
+        
         # calculate W and W' theory
         print("Minimizing witnesses for theoretical data...")
         W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
@@ -217,78 +265,98 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # calculate W and W' expt
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
-        print("Minimizing witnesses for experimental data...\n")
+        print("Minimizing witnesses for experimental data...")
         W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
         
-        ## PARSE LISTS ##
-        # Theoretical data
-        W3_T, W5_T = parse_W_ls(W_T_params, W_T_vals)
+        # check if we calculated W7s and W8s
+        do_W7s_W8s = False
+        if len(W_E_vals) > 15:
+            do_W7s_W8s = True
+        
+        ##############################
+        ## CALCULATING UNCERTAINTIES
+        ##############################
 
-        # Adjusted theory: params are not returned
-        W3_AT, W5_AT = parse_W_ls(W_AT_params, W_AT_vals)
+        # NOTE: i is indexed from one because it represents a witness superscript
+        W_E_unc = []
+        W3_obj = sw.W3(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+        for i in range(1, 7): # W3s
+            expec_val = W3_obj.expec_val(i, *W_E_params[i-1])
+            W_E_unc.append(unp.std_devs(expec_val))
+        
+        W5_obj = sw.W5(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+        for i in range(1, 10): # W5s
+            expec_val = W5_obj.expec_val(i, *W_E_params[i+6-1]) # offset for W3s
+            W_E_unc.append(unp.std_devs(expec_val))
 
-        # Experimental data
-        W3_E, W5_E = parse_W_ls(W_E_params, W_E_vals)
+        if do_W7s_W8s:
+            W7_obj = sw.W7(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+            for i in range(1, 109): # W7s
+                expec_val = W7_obj.expec_val(i, *W_E_params[i+6+9-1]) # offset for W3s and W5s
+                W_E_unc.append(unp.std_devs(expec_val))
+            
+            W8_obj = sw.W8(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+            for i in range(1, 37): # W8s
+                expec_val = W8_obj.expec_val(i, *W_E_params[i+6+9+108-1]) # offset for W3s, W5s, W7s
+                W_E_unc.append(unp.std_devs(expec_val))
 
-        # TODO: fix uncertainties
-        print("Theoretical W3 min:", W3_T['min'])
-        print("Adjusted theory W3 min:", W3_AT['min'])
-        print("Experimental W3 min:", W3_E['min'], "\n")
-        #W3_E['min'] = unp.nominal_value(W3_E['min'])
-        #print("Experimental W3 min:", W3_E['min'])
-        W3_E['unc'] = 0.0
-        #W3_E['unc'] = unp.std_devs(W3_E['min'])
-        #print("Uncertainty:", W3_E['unc'])
+        ##################
+        ## PARSING LISTS
+        ##################
 
-        #Wp_t1_expt = unp.nominal_value(W_expt_ls[1])
-        print("Theoretical W5 triplet 1 min:", W5_T['t1']['min'])
-        print("Adjusted theory W5 triplet 1 min:", W5_AT['t1']['min'])
-        print("Experimental W5 triplet 1 min:", W5_E['t1']['min'], "\n")
-        #W5_E['t1']['min'] = unp.nominal_value(W5_E['t1']['min'])
-        #print("Experimental W5 triplet 1 min:", W5_E['t1']['min'])
-        W5_E['t1']['unc'] = 0.0
-        #W5_E['t1']['unc'] = unp.std_devs(W5_E['t1']['min'])
-        #print("Uncertainty:", W5_E['t1']['unc'])
+        if do_W7s_W8s:
+            # Theoretical data
+            W3_T, W5_T, W7_T, W8_T = parse_W_ls(W_T_params, W_T_vals, do_W7s_W8s)
 
-        print("Theoretical W5 triplet 2 min:", W5_T['t2']['min'])
-        print("Adjusted theory W5 triplet 2 min:", W5_AT['t2']['min'])
-        print("Experimental W5 triplet 2 min:", W5_E['t2']['min'], "\n")
-        #W5_E['t2']['min'] = unp.nominal_value(W5_E['t2']['min'])
-        #print("Experimental W5 triplet 2 min:", W5_E['t2']['min'])
-        W5_E['t2']['unc'] = 0.0
-        #W5_E['t2']['unc'] = unp.std_devs(W5_E['t2']['min'])
-        #print("Uncertainty:", W5_E['t2']['unc'])
+            # Adjusted theory
+            W3_AT, W5_AT, W7_AT, W8_AT = parse_W_ls(W_AT_params, W_AT_vals, do_W7s_W8s)
 
-        print("Theoretical W5 triplet 3 min:", W5_T['t3']['min'])
-        print("Adjusted theory W5 triplet 3 min:", W5_AT['t3']['min'])
-        print("Experimental W5 triplet 3 min:", W5_E['t3']['min'])
-        #W5_E['t3']['min'] = unp.nominal_value(W5_E['t3']['min'])
-        #print("Experimental W5 triplet 3 min:", W5_E['t3']['min'])
-        W5_E['t3']['unc'] = 0.0
-        #W5_E['t3']['unc'] = unp.std_devs(W5_E['t3']['min'])
-        #print("Uncertainty:", W5_E['t3']['unc'])
-
-        # TODO: use pd.insert() to avoid redundancy in this "if" statement
-        # also look into pd.DataFrame.from_dict() for nested dictionaries
-        if eta is not None and chi is not None:
-            adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
-
-            df = pd.concat([df, pd.DataFrame.from_records([{
-                'trial':trial, 'eta':eta, 'chi':chi,
-                'fidelity':fidelity, 'purity':purity, 'AT fidelity':adj_fidelity,
-                'W3 min T': W3_T['min'], 'W3 min AT': W3_AT['min'],
-                'W3 min E': W3_E['min'], 'W3 unc E': W3_E['unc'],
-                'W5 t1 min T': W5_T['t1']['min'], 'W5 t1 min AT': W5_AT['t1']['min'], 
-                'W5 t1 min E': W5_E['t1']['min'], 'W5 t1 unc E': W5_E['t1']['unc'], 
-                'W5 t2 min T': W5_T['t2']['min'], 'W5 t2 min AT': W5_AT['t2']['min'], 
-                'W5 t2 min E': W5_E['t2']['min'], 'W5 t2 unc E': W5_E['t2']['unc'], 
-                'W5 t3 min T': W5_T['t3']['min'], 'W5 t3 min AT': W5_AT['t3']['min'], 
-                'W5 t3 min E': W5_E['t3']['min'], 'W5 t3 unc E': W5_E['t3']['unc'],
-                'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]
-            }])])
-
+            # Experimental data
+            W3_E, W5_E, W7_E, W8_E = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, W_E_unc)
         else:
-            df = pd.concat([df, pd.DataFrame.from_records([{
+            # Theoretical data
+            W3_T, W5_T = parse_W_ls(W_T_params, W_T_vals, do_W7s_W8s)
+
+            # Adjusted theory
+            W3_AT, W5_AT = parse_W_ls(W_AT_params, W_AT_vals, do_W7s_W8s)
+
+            # Experimental data
+            W3_E, W5_E = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, W_E_unc)
+
+        print("\nTheoretical W3 min:", W3_T['min'])
+        print("Adjusted theory W3 min:", W3_AT['min'])
+        print("Experimental W3 min:", W3_E['min'], "+/-", W3_E['unc'])
+
+        print("\nTheoretical W5 triplet 1 min:", W5_T['t1']['min'])
+        print("Adjusted theory W5 triplet 1 min:", W5_AT['t1']['min'])
+        print("Experimental W5 triplet 1 min:", W5_E['t1']['min'], "+/-", W5_E['t1']['unc'])
+
+        print("\nTheoretical W5 triplet 2 min:", W5_T['t2']['min'])
+        print("Adjusted theory W5 triplet 2 min:", W5_AT['t2']['min'])
+        print("Experimental W5 triplet 2 min:", W5_E['t2']['min'], "+/-", W5_E['t2']['unc'])
+
+        print("\nTheoretical W5 triplet 3 min:", W5_T['t3']['min'])
+        print("Adjusted theory W5 triplet 3 min:", W5_AT['t3']['min'])
+        print("Experimental W5 triplet 3 min:", W5_E['t3']['min'], "+/-", W5_E['t3']['unc'])
+
+        if do_W7s_W8s:
+            print("\nTheoretical W7 min:", W7_T['min'])
+            print("Adjusted theory W3 min:", W7_AT['min'])
+            print("Experimental W3 min:", W7_E['min'], "+/-", W7_E['unc'])
+
+            print("\nTheoretical W3 min:", W8_T['min'])
+            print("Adjusted theory W3 min:", W8_AT['min'])
+            print("Experimental W3 min:", W8_E['min'], "+/-", W8_E['unc'])
+
+        #######################
+        ## BUILDING DATAFRAME
+        #######################
+
+        # TODO: think about using pd.DataFrame.from_dict()
+        # pros: much more efficient, doesn't require manually constructing df each time
+        # cons: not ideal for this df layout with only one row of data, would need to change
+        #       the structure of the dictionary
+        df = pd.concat([df, pd.DataFrame.from_records([{
                 'trial':trial, 'fidelity':fidelity, 'purity':purity,
                 'W3 min T': W3_T['min'], 'W3 min AT': W3_AT['min'],
                 'W3 min E': W3_E['min'], 'W3 unc E': W3_E['unc'],
@@ -299,8 +367,14 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
                 'W5 t3 min T': W5_T['t3']['min'], 'W5 t3 min AT': W5_AT['t3']['min'], 
                 'W5 t3 min E': W5_E['t3']['min'], 'W5 t3 unc E': W5_E['t3']['unc'],
                 'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]
-            }])])
-
+                }])
+            ])
+        
+        if eta is not None and chi is not None:
+            adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
+            df.insert(1, 'eta', eta)
+            df.insert(2, 'chi', chi)
+            df.insert(5, 'AT fidelity', adj_fidelity)
     # save df
     print('saving dataframe...')
     df.to_csv(join(DATA_PATH, f'analysis_{id}.csv'))
@@ -308,8 +382,8 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
 def make_plots_E0(dfname):
     '''Reads in df generated by analyze_rhos and plots witness value comparisons as well as fidelity and purity
     __
-    dfname: str, name of df to read in
-    num_plots: int, number of separate plots to make (based on eta)
+    Parameters:
+        dfname: str, name of df to read in
     '''
     print("plotting...")
     id = dfname.split('.')[0].split('_')[-1] # extract identifier from dfname
@@ -452,11 +526,11 @@ def create_noise(rho, power):
     Adds noise of order power to a density matrix rho
     
     Parameters:
-    rho: NxN density matrix
-    power: integer multiple of 10
+        rho: NxN density matrix
+        power: integer multiple of 10
     
     Returns:
-    noisy_rho: rho with noise
+        noisy_rho: rho with noise
     '''
     
     # get size of matrix
@@ -477,11 +551,11 @@ def get_theo_rho(state, chi):
     Calculates the density matrix (rho) for a given set of parameters (eta, chi) for Stuart's states
     
     Parameters:
-    state (string): The name of the state we are analyzing
-    chi (float): The parameter chi
+        state (string): The name of the state we are analyzing
+        chi (float): The parameter chi
     
     Returns:
-    rho (numpy.ndarray): The density matrix
+        rho (numpy.ndarray): The density matrix
     '''
     # Define kets and bell states in vector form 
     H = ket([1,0])
@@ -495,7 +569,6 @@ def get_theo_rho(state, chi):
     PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
     PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
     PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
-
     
     ## The following state(s) are an attempt to find new positive W negative W prime states.
     if state == 'HR_VL':
@@ -593,4 +666,5 @@ if __name__ == '__main__':
 
     # analyze rho files
     analyze_rhos(filenames, rho_actuals, id=STATE_ID)
-    make_plots_E0(f'analysis_{STATE_ID}.csv')
+    if len(filenames) > 1:
+        make_plots_E0(f'analysis_{STATE_ID}.csv')
