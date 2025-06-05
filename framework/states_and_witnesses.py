@@ -279,9 +279,9 @@ class W3:
     
     def W3_stokes(self, idx, theta):
         """
-        Returns the Stokes parameters for all W3s
+        Returns the Stokes parameters for one W3
 
-        Params:
+        Parameters:
         idx: the superscript of the W3 witness to get stokes for
         theta: the minimization parameter
 
@@ -293,6 +293,20 @@ class W3:
 
         stokes = self.stokes_from_mtx(ws[idx-1](theta))
         return stokes
+    
+    def expec_val(self, idx, theta):
+        """
+        Returns the expectation value of one W3
+
+        Parameters:
+        idx: the superscript of the W3 witness to get expectation value for
+        theta: the minimization parameter
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
+        """
+        W_stokes = self.W3_stokes(idx, theta)
+        return 0.0625 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None):
         """
@@ -517,10 +531,10 @@ class W3:
         self.check_xx(quiet=True)
         self.check_yy(quiet=True)
 
+    # TODO: Fix this
     def __str__(self):
         return (
-            f'Rho: {self.rho}\n'
-            f'Counts: {self.counts}\n'
+            f'Stokes: {self.stokes}\n'
         )
 
 class W5(W3):
@@ -635,7 +649,7 @@ class W5(W3):
     
     def W5_stokes(self, idx, theta, alpha, beta):
         """
-        Returns the Stokes parameters for all W5s
+        Returns the Stokes parameters for one W5
 
         Params:
         idx: the superscript of the W5 witness to get stokes for
@@ -659,6 +673,20 @@ class W5(W3):
             stokes = self.stokes_from_mtx(w5s[idx-1](theta, alpha))
 
         return stokes
+    
+    def expec_val(self, idx, theta, alpha, beta):
+        """
+        Returns the expectation value of one W5
+
+        Parameters:
+        idx: the superscript of the W5 witness to get expectation value for
+        theta: the minimization parameter
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
+        """
+        W_stokes = self.W5_stokes(idx, theta, alpha, beta)
+        return 0.0625 * np.dot(self.stokes, W_stokes)
     
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None):
         """
@@ -1138,7 +1166,7 @@ class W8(W5):
 
     def W8_stokes(self, idx, theta, alpha, beta, gamma):
         """
-        Returns the Stokes parameters for all W8s
+        Returns the Stokes parameters for one W8
 
         Params:
         idx: the superscript of the W8 witness to get stokes for
@@ -1166,6 +1194,20 @@ class W8(W5):
             stokes = self.stokes_from_mtx(w8s[idx-1](theta, alpha, beta))
         
         return stokes
+    
+    def expec_val(self, idx, theta, alpha, beta, gamma):
+        """
+        Returns the expectation value of one W8
+
+        Parameters:
+        idx: the superscript of the W8 witness to get expectation value for
+        theta: the minimization parameter
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
+        """
+        W_stokes = self.W8_stokes(idx, theta, alpha, beta, gamma)
+        return 0.0625 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
         """
@@ -2536,7 +2578,7 @@ class W7(W8):
     
     def W7_stokes(self, idx, theta, alpha, beta, gamma):
         """
-        Returns the Stokes parameters for all W7s
+        Returns the Stokes parameters for one W7
 
         Params:
         idx: the superscript of the W7 witness to get stokes for
@@ -2575,6 +2617,20 @@ class W7(W8):
         else:
             stokes = self.stokes_from_mtx(w7s[idx-1](theta, alpha, beta))
         return stokes
+    
+    def expec_val(self, idx, theta, alpha, beta, gamma):
+        """
+        Returns the expectation value of one W7
+
+        Parameters:
+        idx: the superscript of the W7 witness to get expectation value for
+        theta: the minimization parameter
+
+        NOTE: indexes start from 1 so that they correspond with
+        the witness superscripts
+        """
+        W_stokes = self.W7_stokes(idx, theta, alpha, beta, gamma)
+        return 0.0625 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
         """
