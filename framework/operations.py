@@ -41,7 +41,7 @@ def partial_transpose(rho, subsys='B'):
     Useful for the Peres-Horodecki criterion, which states that if the partial transpose 
     of a density matrix has at least one negative eigenvalue, then the state is entangled.
     
-    Params:
+    Parameters:
         rho: density matrix
         subsys: which subsystem to compute partial transpose wrt, i.e. 'A' or 'B'
     """
@@ -96,18 +96,18 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     in a given witness class for a given theoretical density matrix or for given
     experimental data
 
-    Params:
-        witness_classes - a class or list of classes of witnesses
-        rho             - the density matrix
-        counts          - experimental data 
-        num_guesses     - the number of random initial guesses to use in minimization
+    Parameters:
+        witness_classes: a class or list of classes of witnesses
+        rho:             the density matrix
+        counts:          experimental data 
+        num_guesses:     the number of random initial guesses to use in minimization
         NOTE: allowable witness classes are W3, W5, W7, W8, and NavarroWitness (which is all witnesses)
         NOTE: There are an additional 2 guesses at the bounds on top of the random guesses
         TODO: The W7 witnesses have not been implemented yet
 
     Returns: (min_thetas, min_vals)
-        min_thetas - a list of the thetas corresponding to the minimum expectation values
-        min_vals   - a list of the minimum expectation values
+        min_thetas: a list of the thetas corresponding to the minimum expectation values
+        min_vals:   a list of the minimum expectation values
         NOTE: These are listed in the order of the witnesses (e.g. W3_1 first and W3_6 last).
               If multiple classes given, they are listed in the order the classes are listed
     """    
@@ -172,13 +172,13 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         Generic minimization loop that works for any number of minimization parameters
 
         Parameters:
-        W_class             - a list of 16d Stokes parameter vectors for one class of witnesses
-        i                    - iterator that keeps track of position within the list of witnesses
-        rho_stokes           - a 16d vector of Stokes parameters representing the density matrix
-                               of the state
-        params               - the witness parameters to be minimized (i.e. theta, alpha, beta)
-        threshold (optional) - smallest allowed change in the loss function (i.e. expectation value)
-        max_iters (optional) - maximum number of iterations allowed in the optimization loop
+            W_class:              a list of 16d Stokes parameter vectors for one class of witnesses
+            i:                    iterator that keeps track of position within the list of witnesses
+            rho_stokes:           a 16d vector of Stokes parameters representing the density matrix
+                                  of the state
+            params:               the witness parameters to be minimized (i.e. theta, alpha, beta)
+            threshold (optional): smallest allowed change in the loss function (i.e. expectation value)
+            max_iters (optional): maximum number of iterations allowed in the optimization loop
 
         NOTE: threshold is 1e-10 by default
         NOTE: max_iters is 1000 by default
