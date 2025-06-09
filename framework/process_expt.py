@@ -108,10 +108,11 @@ def get_fidelity(rho1, rho2):
         print('rho2', rho2)
         return 1e-5
 
-def parse_W_ls(W_params, W_vals, do_W7s_W8s, W_unc=None):
+def parse_W_ls(W_params, W_vals, do_W7s_W8s, data_dict, intype, W_unc=None):
             """
             A function to parse the lists of outputs from minimize_witnesses.
             Parameters:
+                # TODO: update if new functionality works lol
                 W_params: a list of the parameters used to minimize each witness.
                 W_vals: a list of the minimum expectation value of each witness.
                 do_W7s_W8s: a boolean indicating whether or not W7s and W8s were calculated.
@@ -137,11 +138,9 @@ def parse_W_ls(W_params, W_vals, do_W7s_W8s, W_unc=None):
 
             # Search the dictionary for the minimum W3 and save its name,
             # expec. value, and minimization param
-            W3_returns = {
-                'name': W3_min_name,
-                'min': W3_vals_dict[W3_min_name],
-                'param': W_params_dict[W3_min_name]
-            }
+            data_dict['W3']['name_' + intype] = W3_min_name
+            data_dict['W3']['min_' + intype] = W3_vals_dict[W3_min_name]
+            data_dict['W3']['param_' + intype] = W_params_dict[W3_min_name]
 
             # Creating W5 dictionaries
             # Triplet 1
@@ -157,33 +156,27 @@ def parse_W_ls(W_params, W_vals, do_W7s_W8s, W_unc=None):
             W5t3_min_name = min(W5t3_vals_dict, key=W5t3_vals_dict.get)
 
             # Storing minimum data for each W5 triplet
-            W5_returns = {
-                't1': {
-                    'name': W5t1_min_name,
-                    'min': W5t1_vals_dict[W5t1_min_name],
-                    'params': W_params_dict[W5t1_min_name]
-                },
-                't2': {
-                    'name': W5t2_min_name,
-                    'min': W5t2_vals_dict[W5t2_min_name],
-                    'params': W_params_dict[W5t2_min_name],
-                },
-                't3': {
-                    'name': W5t3_min_name,
-                    'min': W5t3_vals_dict[W5t3_min_name],
-                    'params': W_params_dict[W5t3_min_name]
-                }
-            }
+            data_dict['W5']['t1']['name_' + intype] = W5t1_min_name
+            data_dict['W5']['t1']['min_' + intype] = W5t1_vals_dict[W5t1_min_name]
+            data_dict['W5']['t1']['params_' + intype] = W_params_dict[W5t1_min_name]
+
+            data_dict['W5']['t2']['name_' + intype] = W5t2_min_name
+            data_dict['W5']['t2']['min_' + intype] = W5t2_vals_dict[W5t2_min_name]
+            data_dict['W5']['t2']['params_' + intype] = W_params_dict[W5t2_min_name]
+
+            data_dict['W5']['t3']['name_' + intype] = W5t3_min_name
+            data_dict['W5']['t3']['min_' + intype] = W5t3_vals_dict[W5t3_min_name]
+            data_dict['W5']['t3']['params_' + intype] = W_params_dict[W5t3_min_name]
 
             # Handle uncertainties for experimental data
             if W_unc is not None:
                 W3_unc_dict = dict(zip(W_names[:6], W_unc[:6]))
-                W3_returns['unc'] = W3_unc_dict[W3_min_name]
+                data_dict['W3']['unc_' + intype] = W3_unc_dict[W3_min_name]
 
                 W5_unc_dict = dict(zip(W_names[6:15], W_unc[6:15]))
-                W5_returns['t1']['unc'] = W5_unc_dict[W5t1_min_name]
-                W5_returns['t2']['unc'] = W5_unc_dict[W5t2_min_name]
-                W5_returns['t3']['unc'] = W5_unc_dict[W5t3_min_name]
+                data_dict['W5']['t1']['unc_' + intype] = W5_unc_dict[W5t1_min_name]
+                data_dict['W5']['t2']['unc_' + intype] = W5_unc_dict[W5t2_min_name]
+                data_dict['W5']['t3']['unc_' + intype] = W5_unc_dict[W5t3_min_name]
             
             # If we calculated W7s and W8s, create their dictionaries
             # TODO: decide how we want to group these for analysis
@@ -192,33 +185,27 @@ def parse_W_ls(W_params, W_vals, do_W7s_W8s, W_unc=None):
                 W7_vals_dict = dict(zip(W_names[15:123], W_vals[15:123]))
                 W7_min_name = min(W7_vals_dict, key=W7_vals_dict.get)
 
-                W7_returns = {
-                    'name': W7_min_name,
-                    'min': W7_vals_dict[W7_min_name],
-                    'param': W_params_dict[W7_min_name]
-                }
+                data_dict['W7']['name_' + intype] = W7_min_name
+                data_dict['W7']['min_' + intype] = W7_vals_dict[W7_min_name]
+                data_dict['W7']['params_' + intype] = W_params_dict[W7_min_name]
 
                 # W8s
                 W8_vals_dict = dict(zip(W_names[123:159], W_vals[123:159]))
                 W8_min_name = min(W8_vals_dict, key=W8_vals_dict.get)
 
-                W8_returns = {
-                    'name': W8_min_name,
-                    'min': W8_vals_dict[W8_min_name],
-                    'param': W_params_dict[W8_min_name]
-                }
+                data_dict['W8']['name_' + intype] = W8_min_name
+                data_dict['W8']['min_' + intype] = W8_vals_dict[W8_min_name]
+                data_dict['W8']['params_' + intype] = W_params_dict[W8_min_name]
 
                 # Handle uncertainties for experimental data
                 if W_unc is not None:
                     W7_unc_dict = dict(zip(W_names[15:123], W_unc[15:123]))
-                    W7_returns['unc'] = W7_unc_dict[W7_min_name]
+                    data_dict['W7']['unc_' + intype] = W7_unc_dict[W7_min_name]
 
                     W8_unc_dict = dict(zip(W_names[123:159], W_unc[123:159]))
-                    W8_returns['unc'] = W8_unc_dict[W8_min_name]
-                
-                return W3_returns, W5_returns, W7_returns, W8_returns
+                    data_dict['W8']['unc_' + intype] = W8_unc_dict[W8_min_name]
 
-            return W3_returns, W5_returns
+            return data_dict
 
 def analyze_rhos(filenames, rho_actuals, id='id'):
     '''Extending get_rho_from_file to include multiple files; 
@@ -304,78 +291,112 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         ## PARSING LISTS
         ##################
 
+        # make nested dictionaries to hold all data
+        data = {
+            'W3': {},
+            'W5': {
+                't1': {},
+                't2': {},
+                't3': {}
+            }
+        }
         if do_W7s_W8s:
-            # Theoretical data
-            W3_T, W5_T, W7_T, W8_T = parse_W_ls(W_T_params, W_T_vals, do_W7s_W8s)
+            W7s_W8s_dict = {
+                'W7': {
+                    # 'no_XY_YX': {},
+                    # 'no_XY_YZ': {},
+                    # 'no_XY_ZX': {},
+                    # 'no_XZ_ZX': {},
+                    # 'no_XZ_ZY': {},
+                    # 'no_XZ_YX': {},
+                    # 'no_YX_ZY': {},
+                    # 'no_YZ_ZY': {},
+                    # 'no_YZ_ZX': {}
+                },
+                'W8': {
+                    # 'no_XY': {},
+                    # 'no_YX': {},
+                    # 'no_XZ': {},
+                    # 'no_ZX': {},
+                    # 'no_YZ': {},
+                    # 'no_ZY': {}
+                }
+            }
+            data.update(W7s_W8s_dict)
 
-            # Adjusted theory
-            W3_AT, W5_AT, W7_AT, W8_AT = parse_W_ls(W_AT_params, W_AT_vals, do_W7s_W8s)
+        # Theoretical data
+        data = parse_W_ls(W_T_params, W_T_vals, do_W7s_W8s, data, "T")
 
-            # Experimental data
-            W3_E, W5_E, W7_E, W8_E = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, W_E_unc)
-        else:
-            # Theoretical data
-            W3_T, W5_T = parse_W_ls(W_T_params, W_T_vals, do_W7s_W8s)
+        # Adjusted theory
+        data = parse_W_ls(W_AT_params, W_AT_vals, do_W7s_W8s, data, "AT")
 
-            # Adjusted theory
-            W3_AT, W5_AT = parse_W_ls(W_AT_params, W_AT_vals, do_W7s_W8s)
+        # Experimental data
+        data = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, data, "E", W_E_unc)
 
-            # Experimental data
-            W3_E, W5_E = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, W_E_unc)
+        print("\nTheoretical W3 min:", data['W3']['min_T'])
+        print("Adjusted theory W3 min:", data['W3']['min_AT'])
+        print("Experimental W3 min:", data['W3']['min_E'], "+/-", data['W3']['unc_E'])
 
-        print("\nTheoretical W3 min:", W3_T['min'])
-        print("Adjusted theory W3 min:", W3_AT['min'])
-        print("Experimental W3 min:", W3_E['min'], "+/-", W3_E['unc'])
+        print("\nTheoretical W5 triplet 1 min:", data['W5']['t1']['min_T'])
+        print("Adjusted theory W5 triplet 1 min:", data['W5']['t1']['min_AT'])
+        print("Experimental W5 triplet 1 min:", data['W5']['t1']['min_E'], "+/-", data['W5']['t1']['unc_E'])
 
-        print("\nTheoretical W5 triplet 1 min:", W5_T['t1']['min'])
-        print("Adjusted theory W5 triplet 1 min:", W5_AT['t1']['min'])
-        print("Experimental W5 triplet 1 min:", W5_E['t1']['min'], "+/-", W5_E['t1']['unc'])
+        print("\nTheoretical W5 triplet 2 min:", data['W5']['t2']['min_T'])
+        print("Adjusted theory W5 triplet 2 min:", data['W5']['t2']['min_AT'])
+        print("Experimental W5 triplet 2 min:", data['W5']['t2']['min_E'], "+/-", data['W5']['t2']['unc_E'])
 
-        print("\nTheoretical W5 triplet 2 min:", W5_T['t2']['min'])
-        print("Adjusted theory W5 triplet 2 min:", W5_AT['t2']['min'])
-        print("Experimental W5 triplet 2 min:", W5_E['t2']['min'], "+/-", W5_E['t2']['unc'])
-
-        print("\nTheoretical W5 triplet 3 min:", W5_T['t3']['min'])
-        print("Adjusted theory W5 triplet 3 min:", W5_AT['t3']['min'])
-        print("Experimental W5 triplet 3 min:", W5_E['t3']['min'], "+/-", W5_E['t3']['unc'])
+        print("\nTheoretical W5 triplet 3 min:", data['W5']['t3']['min_T'])
+        print("Adjusted theory W5 triplet 3 min:", data['W5']['t3']['min_AT'])
+        print("Experimental W5 triplet 3 min:", data['W5']['t3']['min_E'], "+/-", data['W5']['t3']['unc_E'])
 
         if do_W7s_W8s:
-            print("\nTheoretical W7 min:", W7_T['min'])
-            print("Adjusted theory W3 min:", W7_AT['min'])
-            print("Experimental W3 min:", W7_E['min'], "+/-", W7_E['unc'])
+            print("\nTheoretical W7 min:", data['W7']['min_T'])
+            print("Adjusted theory W3 min:", data['W7']['min_AT'])
+            print("Experimental W3 min:", data['W7']['min_E'], "+/-", data['W7']['unc_E'])
 
-            print("\nTheoretical W3 min:", W8_T['min'])
-            print("Adjusted theory W3 min:", W8_AT['min'])
-            print("Experimental W3 min:", W8_E['min'], "+/-", W8_E['unc'])
+            print("\nTheoretical W3 min:", data['W8']['min_T'])
+            print("Adjusted theory W3 min:", data['W8']['min_AT'])
+            print("Experimental W3 min:", data['W8']['min_E'], "+/-", data['W8']['unc_E'])
 
         #######################
         ## BUILDING DATAFRAME
         #######################
 
-        # TODO: think about using pd.DataFrame.from_dict()
-        # pros: much more efficient, doesn't require manually constructing df each time
-        # cons: not ideal for this df layout with only one row of data, would need to change
-        #       the structure of the dictionary
-        df = pd.concat([df, pd.DataFrame.from_records([{
-                'trial':trial, 'fidelity':fidelity, 'purity':purity,
-                'W3 min T': W3_T['min'], 'W3 min AT': W3_AT['min'],
-                'W3 min E': W3_E['min'], 'W3 unc E': W3_E['unc'],
-                'W5 t1 min T': W5_T['t1']['min'], 'W5 t1 min AT': W5_AT['t1']['min'], 
-                'W5 t1 min E': W5_E['t1']['min'], 'W5 t1 unc E': W5_E['t1']['unc'], 
-                'W5 t2 min T': W5_T['t2']['min'], 'W5 t2 min AT': W5_AT['t2']['min'], 
-                'W5 t2 min E': W5_E['t2']['min'], 'W5 t2 unc E': W5_E['t2']['unc'], 
-                'W5 t3 min T': W5_T['t3']['min'], 'W5 t3 min AT': W5_AT['t3']['min'], 
-                'W5 t3 min E': W5_E['t3']['min'], 'W5 t3 unc E': W5_E['t3']['unc'],
-                'UV_HWP':angles[0], 'QP':angles[1], 'B_HWP':angles[2]
-                }])
-            ])
+        # Flatten the dictionary and make it into a dataframe
+        flat_data = {}
+        def flatten(d, parent_key='', sep='_'):
+            for k, v in d.items():
+                new_key = parent_key + sep + k if parent_key else k
+                if isinstance(v, dict):
+                    flatten(v, new_key, sep=sep)
+                else:
+                    flat_data[new_key] = v
+        flatten(data)
+
+        # Pull out only minima and not names and params of Ws
+        min_data = {}
+        for k, v in flat_data.items():
+            if "min" in k or "unc" in k:
+                min_data[k] = v
+        new_df_row = pd.DataFrame.from_dict([min_data])
+
+        # Insert columns for other important data that isn't the witness minima
+        new_df_row.insert(0, 'trial', trial)
+        new_df_row.insert(1, 'fidelity', fidelity)
+        new_df_row.insert(2, 'purity', purity)
+        new_df_row['UV_HWP'] = angles[0]
+        new_df_row['QP'] = angles[1]
+        new_df_row['B_HWP'] = angles[2]
         
         if eta is not None and chi is not None:
             adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
-            df.insert(1, 'eta', eta)
-            df.insert(2, 'chi', chi)
-            df.insert(5, 'AT fidelity', adj_fidelity)
-    # save df
+            new_df_row.insert(1, 'eta', eta)
+            new_df_row.insert(2, 'chi', chi)
+            new_df_row.insert(5, 'AT_fidelity', adj_fidelity)
+
+    # Concatenate new row to the multifile dataframe
+    df = pd.concat([df, new_df_row])
+    # Save df
     print('saving dataframe...')
     df.to_csv(join(DATA_PATH, f'analysis_{id}.csv'))
 
@@ -410,16 +431,16 @@ def make_plots_E0(dfname):
         # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
         # extract witness values
-        W3_min_T = df_eta['W3 min T'].to_numpy()
-        W3_min_AT = df_eta['W3 min AT'].to_numpy()
-        W3_min_E = df_eta['W3 min E'].to_numpy()
-        W3_unc = df_eta['W3 unc E'].to_numpy()
+        W3_min_T = df_eta['W3_min_T'].to_numpy()
+        W3_min_AT = df_eta['W3_min_AT'].to_numpy()
+        W3_min_E = df_eta['W3_min_E'].to_numpy()
+        W3_unc = df_eta['W3_unc_E'].to_numpy()
 
-        W5_min_T = df_eta[['W5 t1 min T', 'W5 t2 min T', 'W5 t3 min T']].min(axis=1).to_numpy()
-        W5_min_AT = df_eta[['W5 t1 min AT', 'W5 t2 min AT', 'W5 t3 min AT']].min(axis=1).to_numpy()
-        W5_min_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].min(axis=1).to_numpy()
-        W5_best_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].idxmin(axis=1)
-        W5_unc = np.where(W5_best_E == 'W5 t1 min E', df_eta['W5 t1 unc E'], np.where(W5_best_E == 'W5 t2 min E', df_eta['W5 t2 unc E'], df_eta['W5 t3 unc E']))
+        W5_min_T = df_eta[['W5_t1_min_T', 'W5_t2_min_T', 'W5_t3_min_T']].min(axis=1).to_numpy()
+        W5_min_AT = df_eta[['W5_t1_min_AT', 'W5_t2_min_AT', 'W5_t3_min_AT']].min(axis=1).to_numpy()
+        W5_min_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].min(axis=1).to_numpy()
+        W5_best_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].idxmin(axis=1)
+        W5_unc = np.where(W5_best_E == 'W5_t1_min_E', df_eta['W5_t1_unc_E'], np.where(W5_best_E == 'W5_t2_min_E', df_eta['W5_t2_unc_E'], df_eta['W5_t3_unc_E']))
 
         # plot curves for T and AT
         def sinsq(x, a, b, c, d):
@@ -465,7 +486,7 @@ def make_plots_E0(dfname):
             purity_eta = df_eta['purity'].to_numpy()
             fidelity_eta = df_eta['fidelity'].to_numpy()
             chi_eta = df_eta['chi'].to_numpy()
-            adj_fidelity = df_eta['AT fidelity'].to_numpy()
+            adj_fidelity = df_eta['AT_fidelity'].to_numpy()
 
             # # do purity and fidelity plots
             # ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
@@ -475,16 +496,16 @@ def make_plots_E0(dfname):
             # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
             # extract witness values
-            W3_min_T = df_eta['W3 min T'].to_numpy()
-            W3_min_AT = df_eta['W3 min AT'].to_numpy()
-            W3_min_E = df_eta['W3 min E'].to_numpy()
-            W3_unc = df_eta['W3 unc E'].to_numpy()
+            W3_min_T = df_eta['W3_min_T'].to_numpy()
+            W3_min_AT = df_eta['W3_min_AT'].to_numpy()
+            W3_min_E = df_eta['W3_min_E'].to_numpy()
+            W3_unc = df_eta['W3_unc_E'].to_numpy()
 
-            W5_min_T = df_eta[['W5 t1 min T', 'W5 t2 min T', 'W5 t3 min T']].min(axis=1).to_numpy()
-            W5_min_AT = df_eta[['W5 t1 min AT', 'W5 t2 min AT', 'W5 t3 min AT']].min(axis=1).to_numpy()
-            W5_min_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].min(axis=1).to_numpy()
-            W5_best_E = df_eta[['W5 t1 min E', 'W5 t2 min E', 'W5 t3 min E']].idxmin(axis=1)
-            W5_unc = np.where(W5_best_E == 'W5 t1 min E', df_eta['W5 t1 unc E'], np.where(W5_best_E == 'W5 t2 min E', df_eta['W5 t2 unc E'], df_eta['W5 t3 unc E']))
+            W5_min_T = df_eta[['W5_t1_min_T', 'W5_t2_min_T', 'W5_t3_min_T']].min(axis=1).to_numpy()
+            W5_min_AT = df_eta[['W5_t1_min_AT', 'W5_t2_min_AT', 'W5_t3_min_AT']].min(axis=1).to_numpy()
+            W5_min_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].min(axis=1).to_numpy()
+            W5_best_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].idxmin(axis=1)
+            W5_unc = np.where(W5_best_E == 'W5_t1_min_E', df_eta['W5_t1_unc_E'], np.where(W5_best_E == 'W5_t2_min_E', df_eta['W5_t2_unc_E'], df_eta['W5_t3_unc_E']))
 
             # plot curves for T and AT
             def sinsq(x, a, b, c, d):
