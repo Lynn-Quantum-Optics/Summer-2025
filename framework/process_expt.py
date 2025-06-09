@@ -109,103 +109,210 @@ def get_fidelity(rho1, rho2):
         return 1e-5
 
 def parse_W_ls(W_params, W_vals, do_W7s_W8s, data_dict, intype, W_unc=None):
-            """
-            A function to parse the lists of outputs from minimize_witnesses.
-            Parameters:
-                # TODO: update if new functionality works lol
-                W_params: a list of the parameters used to minimize each witness.
-                W_vals: a list of the minimum expectation value of each witness.
-                do_W7s_W8s: a boolean indicating whether or not W7s and W8s were calculated.
-                W_unc (optional): a list of experimental uncertainties for the expectation values.
-            """
+    """
+    A function to parse the lists of outputs from minimize_witnesses.
+    Parameters:
+        W_params: a list of the parameters used to minimize each witness.
+        W_vals: a list of the minimum expectation value of each witness.
+        do_W7s_W8s: a boolean indicating whether or not W7s and W8s were calculated.
+        data_dict: the nested dictionary to add the data to.
+        intype: a label for the type of data being input, i.e. "T" for theory, "AT" for
+                adjusted theory, or "E" for experiment
+        W_unc (optional): a list of experimental uncertainties for the expectation values.
+    """
 
-            W_names = []
-            for i in range(1, 7):
-                W_names.append(f'W3_{i}')
-            for i in range(1, 10):
-                W_names.append(f'W5_{i}')
-            for i in range(1, 109):
-                W_names.append(f'W7_{i}')
-            for i in range(1, 37):
-                W_names.append(f'W8_{i}')
+    W_names = []
+    for i in range(1, 7):
+        W_names.append(f'W3_{i}')
+    for i in range(1, 10):
+        W_names.append(f'W5_{i}')
+    for i in range(1, 109):
+        W_names.append(f'W7_{i}')
+    for i in range(1, 37):
+        W_names.append(f'W8_{i}')
 
-            # Map the names of all witnesses to their minimization params
-            W_params_dict = dict(zip(W_names, W_params))
+    # Map the names of all witnesses to their minimization params
+    W_params_dict = dict(zip(W_names, W_params))
 
-            # Map the names of the W3s to their minimum expectation values
-            W3_vals_dict = dict(zip(W_names[:6], W_vals[:6]))
-            W3_min_name = min(W3_vals_dict, key=W3_vals_dict.get)
+    ########
+    ## W3s
+    ########
+    # Map the names of the W3s to their minimum expectation values
+    W3_vals_dict = dict(zip(W_names[:6], W_vals[:6]))
+    W3_min_name = min(W3_vals_dict, key=W3_vals_dict.get)
 
-            # Search the dictionary for the minimum W3 and save its name,
-            # expec. value, and minimization param
-            data_dict['W3']['name_' + intype] = W3_min_name
-            data_dict['W3']['min_' + intype] = W3_vals_dict[W3_min_name]
-            data_dict['W3']['param_' + intype] = W_params_dict[W3_min_name]
+    # Search the dictionary for the minimum W3 and save its name,
+    # expec. value, and minimization param
+    data_dict['W3']['name_' + intype] = W3_min_name
+    data_dict['W3']['min_' + intype] = W3_vals_dict[W3_min_name]
+    data_dict['W3']['param_' + intype] = W_params_dict[W3_min_name]
 
-            # Creating W5 dictionaries
-            # Triplet 1
-            W5t1_vals_dict = dict(zip(W_names[6:9], W_vals[6:9]))
-            W5t1_min_name = min(W5t1_vals_dict, key=W5t1_vals_dict.get)
+    ########
+    ## W5s
+    ########
+    # Triplet 1
+    W5_t1_vals_dict = dict(zip(W_names[6:9], W_vals[6:9]))
+    W5_t1_min_name = min(W5_t1_vals_dict, key=W5_t1_vals_dict.get)
+    data_dict['W5']['t1']['name_' + intype] = W5_t1_min_name
+    data_dict['W5']['t1']['min_' + intype] = W5_t1_vals_dict[W5_t1_min_name]
+    data_dict['W5']['t1']['params_' + intype] = W_params_dict[W5_t1_min_name]
 
-            #Triplet 2
-            W5t2_vals_dict = dict(zip(W_names[9:12], W_vals[9:12]))
-            W5t2_min_name = min(W5t2_vals_dict, key=W5t2_vals_dict.get)
+    #Triplet 2
+    W5_t2_vals_dict = dict(zip(W_names[9:12], W_vals[9:12]))
+    W5_t2_min_name = min(W5_t2_vals_dict, key=W5_t2_vals_dict.get)
+    data_dict['W5']['t2']['name_' + intype] = W5_t2_min_name
+    data_dict['W5']['t2']['min_' + intype] = W5_t2_vals_dict[W5_t2_min_name]
+    data_dict['W5']['t2']['params_' + intype] = W_params_dict[W5_t2_min_name]
 
-            #Triplet 3
-            W5t3_vals_dict = dict(zip(W_names[12:15], W_vals[12:15]))
-            W5t3_min_name = min(W5t3_vals_dict, key=W5t3_vals_dict.get)
+    #Triplet 3
+    W5_t3_vals_dict = dict(zip(W_names[12:15], W_vals[12:15]))
+    W5_t3_min_name = min(W5_t3_vals_dict, key=W5_t3_vals_dict.get)
+    data_dict['W5']['t3']['name_' + intype] = W5_t3_min_name
+    data_dict['W5']['t3']['min_' + intype] = W5_t3_vals_dict[W5_t3_min_name]
+    data_dict['W5']['t3']['params_' + intype] = W_params_dict[W5_t3_min_name]
 
-            # Storing minimum data for each W5 triplet
-            data_dict['W5']['t1']['name_' + intype] = W5t1_min_name
-            data_dict['W5']['t1']['min_' + intype] = W5t1_vals_dict[W5t1_min_name]
-            data_dict['W5']['t1']['params_' + intype] = W_params_dict[W5t1_min_name]
+    # Handle uncertainties for experimental data
+    if W_unc is not None:
+        W_unc_dict = dict(zip(W_names, W_unc))
+        data_dict['W3']['unc_' + intype] = W_unc_dict[W3_min_name]
 
-            data_dict['W5']['t2']['name_' + intype] = W5t2_min_name
-            data_dict['W5']['t2']['min_' + intype] = W5t2_vals_dict[W5t2_min_name]
-            data_dict['W5']['t2']['params_' + intype] = W_params_dict[W5t2_min_name]
+        data_dict['W5']['t1']['unc_' + intype] = W_unc_dict[W5_t1_min_name]
+        data_dict['W5']['t2']['unc_' + intype] = W_unc_dict[W5_t2_min_name]
+        data_dict['W5']['t3']['unc_' + intype] = W_unc_dict[W5_t3_min_name]
+    
+    # If we calculated W7s and W8s, create their dictionaries
+    if do_W7s_W8s:
+        ########
+        ## W7s
+        ########
+        # set 1: no XY, YX
+        W7_s1_vals_dict = dict(zip(W_names[15:27], W_vals[15:27]))
+        W7_s1_min_name = min(W7_s1_vals_dict, key=W7_s1_vals_dict.get)
+        data_dict['W7']['no_XY_YX']['name_' + intype] = W7_s1_min_name
+        data_dict['W7']['no_XY_YX']['min_' + intype] = W7_s1_vals_dict[W7_s1_min_name]
+        data_dict['W7']['no_XY_YX']['params_' + intype] = W_params_dict[W7_s1_min_name]
 
-            data_dict['W5']['t3']['name_' + intype] = W5t3_min_name
-            data_dict['W5']['t3']['min_' + intype] = W5t3_vals_dict[W5t3_min_name]
-            data_dict['W5']['t3']['params_' + intype] = W_params_dict[W5t3_min_name]
+        # set 2: no XY, YZ
+        W7_s2_vals_dict = dict(zip(W_names[27:39], W_vals[27:39]))
+        W7_s2_min_name = min(W7_s2_vals_dict, key=W7_s2_vals_dict.get)
+        data_dict['W7']['no_XY_YZ']['name_' + intype] = W7_s2_min_name
+        data_dict['W7']['no_XY_YZ']['min_' + intype] = W7_s2_vals_dict[W7_s2_min_name]
+        data_dict['W7']['no_XY_YZ']['params_' + intype] = W_params_dict[W7_s2_min_name]
 
-            # Handle uncertainties for experimental data
-            if W_unc is not None:
-                W3_unc_dict = dict(zip(W_names[:6], W_unc[:6]))
-                data_dict['W3']['unc_' + intype] = W3_unc_dict[W3_min_name]
+        # set 3: no XY, ZX
+        W7_s3_vals_dict = dict(zip(W_names[39:51], W_vals[39:51]))
+        W7_s3_min_name = min(W7_s3_vals_dict, key=W7_s3_vals_dict.get)
+        data_dict['W7']['no_XY_ZX']['name_' + intype] = W7_s3_min_name
+        data_dict['W7']['no_XY_ZX']['min_' + intype] = W7_s3_vals_dict[W7_s3_min_name]
+        data_dict['W7']['no_XY_ZX']['params_' + intype] = W_params_dict[W7_s3_min_name]
 
-                W5_unc_dict = dict(zip(W_names[6:15], W_unc[6:15]))
-                data_dict['W5']['t1']['unc_' + intype] = W5_unc_dict[W5t1_min_name]
-                data_dict['W5']['t2']['unc_' + intype] = W5_unc_dict[W5t2_min_name]
-                data_dict['W5']['t3']['unc_' + intype] = W5_unc_dict[W5t3_min_name]
-            
-            # If we calculated W7s and W8s, create their dictionaries
-            # TODO: decide how we want to group these for analysis
-            if do_W7s_W8s:
-                # W7s
-                W7_vals_dict = dict(zip(W_names[15:123], W_vals[15:123]))
-                W7_min_name = min(W7_vals_dict, key=W7_vals_dict.get)
+        # set 4: no XZ, ZX
+        W7_s4_vals_dict = dict(zip(W_names[51:63], W_vals[51:63]))
+        W7_s4_min_name = min(W7_s4_vals_dict, key=W7_s4_vals_dict.get)
+        data_dict['W7']['no_XZ_ZX']['name_' + intype] = W7_s4_min_name
+        data_dict['W7']['no_XZ_ZX']['min_' + intype] = W7_s4_vals_dict[W7_s4_min_name]
+        data_dict['W7']['no_XZ_ZX']['params_' + intype] = W_params_dict[W7_s4_min_name]
 
-                data_dict['W7']['name_' + intype] = W7_min_name
-                data_dict['W7']['min_' + intype] = W7_vals_dict[W7_min_name]
-                data_dict['W7']['params_' + intype] = W_params_dict[W7_min_name]
+        # set 5: no XZ, ZY
+        W7_s5_vals_dict = dict(zip(W_names[63:75], W_vals[63:75]))
+        W7_s5_min_name = min(W7_s5_vals_dict, key=W7_s5_vals_dict.get)
+        data_dict['W7']['no_XZ_ZY']['name_' + intype] = W7_s5_min_name
+        data_dict['W7']['no_XZ_ZY']['min_' + intype] = W7_s5_vals_dict[W7_s5_min_name]
+        data_dict['W7']['no_XZ_ZY']['params_' + intype] = W_params_dict[W7_s5_min_name]
 
-                # W8s
-                W8_vals_dict = dict(zip(W_names[123:159], W_vals[123:159]))
-                W8_min_name = min(W8_vals_dict, key=W8_vals_dict.get)
+        # set 6: no XZ, YX
+        W7_s6_vals_dict = dict(zip(W_names[75:87], W_vals[75:87]))
+        W7_s6_min_name = min(W7_s6_vals_dict, key=W7_s6_vals_dict.get)
+        data_dict['W7']['no_XZ_YX']['name_' + intype] = W7_s6_min_name
+        data_dict['W7']['no_XZ_YX']['min_' + intype] = W7_s6_vals_dict[W7_s6_min_name]
+        data_dict['W7']['no_XZ_YX']['params_' + intype] = W_params_dict[W7_s6_min_name]
 
-                data_dict['W8']['name_' + intype] = W8_min_name
-                data_dict['W8']['min_' + intype] = W8_vals_dict[W8_min_name]
-                data_dict['W8']['params_' + intype] = W_params_dict[W8_min_name]
+        # set 7: no YX, ZY
+        W7_s7_vals_dict = dict(zip(W_names[87:99], W_vals[87:99]))
+        W7_s7_min_name = min(W7_s7_vals_dict, key=W7_s7_vals_dict.get)
+        data_dict['W7']['no_YX_ZY']['name_' + intype] = W7_s7_min_name
+        data_dict['W7']['no_YX_ZY']['min_' + intype] = W7_s7_vals_dict[W7_s7_min_name]
+        data_dict['W7']['no_YX_ZY']['params_' + intype] = W_params_dict[W7_s7_min_name]
 
-                # Handle uncertainties for experimental data
-                if W_unc is not None:
-                    W7_unc_dict = dict(zip(W_names[15:123], W_unc[15:123]))
-                    data_dict['W7']['unc_' + intype] = W7_unc_dict[W7_min_name]
+        # set 8: no YZ, ZY
+        W7_s8_vals_dict = dict(zip(W_names[99:111], W_vals[99:111]))
+        W7_s8_min_name = min(W7_s8_vals_dict, key=W7_s8_vals_dict.get)
+        data_dict['W7']['no_YZ_ZY']['name_' + intype] = W7_s8_min_name
+        data_dict['W7']['no_YZ_ZY']['min_' + intype] = W7_s8_vals_dict[W7_s8_min_name]
+        data_dict['W7']['no_YZ_ZY']['params_' + intype] = W_params_dict[W7_s8_min_name]
 
-                    W8_unc_dict = dict(zip(W_names[123:159], W_unc[123:159]))
-                    data_dict['W8']['unc_' + intype] = W8_unc_dict[W8_min_name]
+        # set 9: no YZ, ZX
+        W7_s9_vals_dict = dict(zip(W_names[111:123], W_vals[111:123]))
+        W7_s9_min_name = min(W7_s9_vals_dict, key=W7_s9_vals_dict.get)
+        data_dict['W7']['no_YZ_ZX']['name_' + intype] = W7_s9_min_name
+        data_dict['W7']['no_YZ_ZX']['min_' + intype] = W7_s9_vals_dict[W7_s9_min_name]
+        data_dict['W7']['no_YZ_ZX']['params_' + intype] = W_params_dict[W7_s9_min_name]
 
-            return data_dict
+        ########
+        ## W8s
+        ########
+        # set 1: no XY
+        W8_s1_vals_dict = dict(zip(W_names[123:129], W_vals[123:129]))
+        W8_s1_min_name = min(W8_s1_vals_dict, key=W8_s1_vals_dict.get)
+        data_dict['W8']['no_XY']['name_' + intype] = W8_s1_min_name
+        data_dict['W8']['no_XY']['min_' + intype] = W8_s1_vals_dict[W8_s1_min_name]
+        data_dict['W8']['no_XY']['params_' + intype] = W_params_dict[W8_s1_min_name]
+
+        # set 2: no YX
+        W8_s2_vals_dict = dict(zip(W_names[129:135], W_vals[129:135]))
+        W8_s2_min_name = min(W8_s2_vals_dict, key=W8_s2_vals_dict.get)
+        data_dict['W8']['no_YX']['name_' + intype] = W8_s2_min_name
+        data_dict['W8']['no_YX']['min_' + intype] = W8_s2_vals_dict[W8_s2_min_name]
+        data_dict['W8']['no_YX']['params_' + intype] = W_params_dict[W8_s2_min_name]
+
+        # set 3: no XZ
+        W8_s3_vals_dict = dict(zip(W_names[135:141], W_vals[135:141]))
+        W8_s3_min_name = min(W8_s3_vals_dict, key=W8_s3_vals_dict.get)
+        data_dict['W8']['no_XZ']['name_' + intype] = W8_s3_min_name
+        data_dict['W8']['no_XZ']['min_' + intype] = W8_s3_vals_dict[W8_s3_min_name]
+        data_dict['W8']['no_XZ']['params_' + intype] = W_params_dict[W8_s3_min_name]
+
+        # set 4: no ZX
+        W8_s4_vals_dict = dict(zip(W_names[141:147], W_vals[141:147]))
+        W8_s4_min_name = min(W8_s4_vals_dict, key=W8_s4_vals_dict.get)
+        data_dict['W8']['no_ZX']['name_' + intype] = W8_s4_min_name
+        data_dict['W8']['no_ZX']['min_' + intype] = W8_s4_vals_dict[W8_s4_min_name]
+        data_dict['W8']['no_ZX']['params_' + intype] = W_params_dict[W8_s4_min_name]
+
+        # set 5: no YZ
+        W8_s5_vals_dict = dict(zip(W_names[147:153], W_vals[147:153]))
+        W8_s5_min_name = min(W8_s5_vals_dict, key=W8_s5_vals_dict.get)
+        data_dict['W8']['no_YZ']['name_' + intype] = W8_s5_min_name
+        data_dict['W8']['no_YZ']['min_' + intype] = W8_s5_vals_dict[W8_s5_min_name]
+        data_dict['W8']['no_YZ']['params_' + intype] = W_params_dict[W8_s5_min_name]
+
+        # set 6: no ZY
+        W8_s6_vals_dict = dict(zip(W_names[153:159], W_vals[153:159]))
+        W8_s6_min_name = min(W8_s6_vals_dict, key=W8_s6_vals_dict.get)
+        data_dict['W8']['no_ZY']['name_' + intype] = W8_s6_min_name
+        data_dict['W8']['no_ZY']['min_' + intype] = W8_s6_vals_dict[W8_s6_min_name]
+        data_dict['W8']['no_ZY']['params_' + intype] = W_params_dict[W8_s6_min_name]
+
+        # Handle uncertainties for experimental data
+        if W_unc is not None:
+            data_dict['W7']['no_XY_YX']['unc_' + intype] = W_unc_dict[W7_s1_min_name]
+            data_dict['W7']['no_XY_YZ']['unc_' + intype] = W_unc_dict[W7_s2_min_name]
+            data_dict['W7']['no_XY_ZX']['unc_' + intype] = W_unc_dict[W7_s3_min_name]
+            data_dict['W7']['no_XZ_ZX']['unc_' + intype] = W_unc_dict[W7_s4_min_name]
+            data_dict['W7']['no_XZ_ZY']['unc_' + intype] = W_unc_dict[W7_s5_min_name]
+            data_dict['W7']['no_XZ_YX']['unc_' + intype] = W_unc_dict[W7_s6_min_name]
+            data_dict['W7']['no_YX_ZY']['unc_' + intype] = W_unc_dict[W7_s7_min_name]
+            data_dict['W7']['no_YZ_ZY']['unc_' + intype] = W_unc_dict[W7_s8_min_name]
+            data_dict['W7']['no_YZ_ZX']['unc_' + intype] = W_unc_dict[W7_s9_min_name]
+
+            data_dict['W8']['no_XY']['unc_' + intype] = W_unc_dict[W8_s1_min_name]
+            data_dict['W8']['no_YX']['unc_' + intype] = W_unc_dict[W8_s2_min_name]
+            data_dict['W8']['no_XZ']['unc_' + intype] = W_unc_dict[W8_s3_min_name]
+            data_dict['W8']['no_ZX']['unc_' + intype] = W_unc_dict[W8_s4_min_name]
+            data_dict['W8']['no_YZ']['unc_' + intype] = W_unc_dict[W8_s5_min_name]
+            data_dict['W8']['no_ZY']['unc_' + intype] = W_unc_dict[W8_s6_min_name]
+
+    return data_dict
 
 def analyze_rhos(filenames, rho_actuals, id='id'):
     '''Extending get_rho_from_file to include multiple files; 
@@ -292,6 +399,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         ##################
 
         # make nested dictionaries to hold all data
+        # NOTE: W5s, W7s, and W8s are all grouped by the measurements they require/exclude
         data = {
             'W3': {},
             'W5': {
@@ -303,23 +411,23 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         if do_W7s_W8s:
             W7s_W8s_dict = {
                 'W7': {
-                    # 'no_XY_YX': {},
-                    # 'no_XY_YZ': {},
-                    # 'no_XY_ZX': {},
-                    # 'no_XZ_ZX': {},
-                    # 'no_XZ_ZY': {},
-                    # 'no_XZ_YX': {},
-                    # 'no_YX_ZY': {},
-                    # 'no_YZ_ZY': {},
-                    # 'no_YZ_ZX': {}
+                    'no_XY_YX': {},
+                    'no_XY_YZ': {},
+                    'no_XY_ZX': {},
+                    'no_XZ_ZX': {},
+                    'no_XZ_ZY': {},
+                    'no_XZ_YX': {},
+                    'no_YX_ZY': {},
+                    'no_YZ_ZY': {},
+                    'no_YZ_ZX': {}
                 },
                 'W8': {
-                    # 'no_XY': {},
-                    # 'no_YX': {},
-                    # 'no_XZ': {},
-                    # 'no_ZX': {},
-                    # 'no_YZ': {},
-                    # 'no_ZY': {}
+                    'no_XY': {},
+                    'no_YX': {},
+                    'no_XZ': {},
+                    'no_ZX': {},
+                    'no_YZ': {},
+                    'no_ZY': {}
                 }
             }
             data.update(W7s_W8s_dict)
