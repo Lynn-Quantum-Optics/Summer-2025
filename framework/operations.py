@@ -269,7 +269,6 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
                 # use the right number of parameters
                 param_vars = [theta, alpha, beta, gamma][:num_params]
-                print("class", class_idx, "witness", witness_idx)
                 this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
 
                 if this_min_val < min_val:
