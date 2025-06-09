@@ -127,8 +127,8 @@ def R_z(theta):
                     [0, np.cos(theta/2) + np.sin(theta/2)*1j]])
 
 def R_x(theta):
-    return np.array([[np.cos(theta/2), np.sin(theta/2)*1j],
-                    [np.sin(theta/2)*1j, np.cos(theta/2)]])
+    return np.array([[np.cos(theta/2), np.sin(theta/2)*-1j],
+                    [np.sin(theta/2)*-1j, np.cos(theta/2)]])
 
 def R_y(theta):
     return np.array([[np.cos(theta/2), -(np.sin(theta/2))],
@@ -314,7 +314,7 @@ class W3:
         return op.partial_transpose(phi6 * op.adjoint(phi6))
     
     
-    def W3_stokes(self, idx, theta):
+    def W_stokes(self, idx, theta):
         """
         Returns the Stokes parameters for one W3
 
@@ -342,8 +342,8 @@ class W3:
         NOTE: indexes start from 1 so that they correspond with
         the witness superscripts
         """
-        W_stokes = self.W3_stokes(idx, theta)
-        return 0.0625 * np.dot(self.stokes, W_stokes)
+        W_stokes = self.W_stokes(idx, theta)
+        return 0.0625 * np.dot(self.stokes, W_stokes) # 0.0625 is 1/16
 
     def get_witnesses(self, return_type, theta=None):
         """
@@ -357,30 +357,20 @@ class W3:
         Params:
         return_type - determines whether to return Stokes parameters or expectation values
                       of the witnesses
-        theta (optional) - the theta value to calculate expectation values for when vals is True
+        theta (optional) - the theta value to calculate expectation values or stokes params
 
-        NOTE: theta is not given by default, and must be given when returning vals
+        NOTE: theta is not given by default, and must be given when returning vals or stokes
         NOTE: even if theta is given, vals are only calculated for return_type vals
         """
-        ws = [self.W3_1, self.W3_2, self.W3_3, self.W3_4, self.W3_5, self.W3_6]
-
-        stokes = self.W3_stokes
         
-        if return_type == "stokes":
-            return stokes
+        if return_type == "operators":
+            return [self.W3_1, self.W3_2, self.W3_3, self.W3_4, self.W3_5, self.W3_6]
 
-        elif return_type == "operators":
-            return ws
+        elif return_type == "stokes":
+            return [self.W_stokes(idx, theta) for idx in range(1, 7)]
         
         elif return_type == "vals":
-            # Check to see that theta is given
-            assert theta is not None, "ERROR: theta not given"
-            stokes = [w(theta) for w in stokes]
-            values = []
-
-            for w in stokes:
-                values += [0.0625 * np.dot(self.stokes, w)] # 0.0625 is 1/16
- 
+            values = [self.expec_val(idx, theta) for idx in range(1, 7)]
             return values
         
         else: # invalid return_type
@@ -704,7 +694,7 @@ class W5(W3):
         rotation = np.kron(R_y(alpha), R_y(beta))
         return op.rotate_m(w1, rotation)
     
-    def W5_stokes(self, idx, theta, alpha, beta):
+    def W_stokes(self, idx, theta, alpha, beta):
         """
         Returns the Stokes parameters for one W5
 
@@ -742,7 +732,7 @@ class W5(W3):
         NOTE: indexes start from 1 so that they correspond with
         the witness superscripts
         """
-        W_stokes = self.W5_stokes(idx, theta, alpha, beta)
+        W_stokes = self.W_stokes(idx, theta, alpha, beta)
         return 0.0625 * np.dot(self.stokes, W_stokes)
     
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None):
@@ -754,40 +744,21 @@ class W5(W3):
         If return type is 'vals':
             Returns the expectation values of the W5 witnesses with given parameters
 
-        NOTE: theta, alpha, beta must be given when returning vals
+        NOTE: theta, alpha, beta must be given when returning stokes or vals
         NOTE: Works the same as the get_witnesses function from W3, see docstring from that
               function for more details
         """
-        w5s = [self.W5_1, self.W5_2, self.W5_3, 
+
+        if return_type == "operators":
+            return [self.W5_1, self.W5_2, self.W5_3, 
                 self.W5_4, self.W5_5, self.W5_6,
                 self.W5_7, self.W5_8, self.W5_9]
         
-        stokes = self.W5_stokes
-        
-        if return_type == "stokes":
-            return stokes
-
-        elif return_type == "operators":
-            return w5s
+        elif return_type == "stokes":
+            return [self.W_stokes(idx, theta, alpha, beta) for idx in range(1, 10)]
         
         elif return_type == "vals":
-            # Check to see that all parameters are given
-            assert theta is not None, "ERROR: theta not given"
-            assert alpha is not None, "ERROR: alpha not given"
-            assert beta is not None, "ERROR: beta not given"
-
-            # Get the W5 operators for the given parameters
-            for i, W in enumerate(stokes):
-                if i == 2 or i == 5 or i == 8:
-                    stokes[i] = W(theta, alpha, beta)
-                else:
-                    stokes[i] = W(theta, alpha)
-            
-            # Calculate the expectation values
-            values = []
-            for w in stokes:
-                values += [0.0625 * np.dot(self.stokes, w)] # 0.0625 is 1/16
-            return values
+            return [self.expec_val(idx, theta, alpha, beta) for idx in range(1, 10)]
         
         else: # invalid return_type
             raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
@@ -1221,7 +1192,7 @@ class W8(W5):
         return op.rotate_m(w5_3, rotation)
     
 
-    def W8_stokes(self, idx, theta, alpha, beta, gamma):
+    def W_stokes(self, idx, theta, alpha, beta, gamma):
         """
         Returns the Stokes parameters for one W8
 
@@ -1263,7 +1234,7 @@ class W8(W5):
         NOTE: indexes start from 1 so that they correspond with
         the witness superscripts
         """
-        W_stokes = self.W8_stokes(idx, theta, alpha, beta, gamma)
+        W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
         return 0.0625 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
@@ -1275,49 +1246,24 @@ class W8(W5):
         If return type is 'vals':
             Returns the expectation values of the W8 witnesses with given parameters
 
-        NOTE: theta, alpha, beta, gamma must be given when returning vals
+        NOTE: theta, alpha, beta, gamma must be given when returning vals or stokes
         NOTE: Works the same as the get_witnesses function from W3, see docstring from that
               function for more details
         """
 
-        w8s = [self.W8_1, self.W8_2, self.W8_3, self.W8_4, self.W8_5, self.W8_6,
+        if return_type == "operators":
+            return [self.W8_1, self.W8_2, self.W8_3, self.W8_4, self.W8_5, self.W8_6,
                self.W8_7, self.W8_8, self.W8_9, self.W8_10, self.W8_11, self.W8_12,
                self.W8_13, self.W8_14, self.W8_15, self.W8_16, self.W8_17, self.W8_18,
                self.W8_19, self.W8_20, self.W8_21, self.W8_22, self.W8_23, self.W8_24,
                self.W8_25, self.W8_26, self.W8_27, self.W8_28, self.W8_29, self.W8_30,
                self.W8_31, self.W8_32, self.W8_33, self.W8_34, self.W8_35, self.W8_36]
         
-        stokes = [None] * 36
-        for i in range(36):
-            stokes[i] = self.W8_stokes(i, theta, alpha, beta, gamma)
-        
-        if return_type == "stokes":
-            return stokes
-        
-        ## Return operators
-        if return_type == "operators":
-            return w8s
+        elif return_type == "stokes":
+            return [self.W_stokes(idx, theta, alpha, beta, gamma) for idx in range(1, 37)]
         
         elif return_type == "vals":
-            # Check to see that all parameters are given
-            assert theta is not None, "ERROR: theta not given"
-            assert alpha is not None, "ERROR: alpha not given"
-            assert beta is not None, "ERROR: beta not given"
-            assert gamma is not None, "ERROR: gamma not given"
-
-            # Get the W8 operators for the given parameters
-            for i, W in enumerate(stokes):
-                # every 3rd witness needs gamma (NOTE: i is zero-indexed)
-                if i % 3 == 2:
-                    stokes[i] = W(theta, alpha, beta, gamma)
-                else:
-                    stokes[i] = W(theta, alpha, beta)
-            
-            # Calculate the expectation values
-            values = []
-            for w in stokes:
-                values += [0.0625 * np.dot(self.stokes, w)] # 0.0625 is 1/16
-            return values
+            return [self.expec_val(idx, theta, alpha, beta, gamma) for idx in range(1, 37)]
         
         else: # invalid return_type
             raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
@@ -2306,7 +2252,7 @@ class W7(W8):
         else:
             assert False, "Invalid set specified."
 
-    def W7_stokes(self, idx, theta, alpha, beta, gamma):
+    def W_stokes(self, idx, theta, alpha, beta, gamma):
         """
         Returns the Stokes parameters for one W7
 
@@ -2359,7 +2305,7 @@ class W7(W8):
         NOTE: indexes start from 1 so that they correspond with
         the witness superscripts
         """
-        W_stokes = self.W7_stokes(idx, theta, alpha, beta, gamma)
+        W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
         return 0.0625 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
@@ -2375,8 +2321,9 @@ class W7(W8):
         NOTE: Works the same as the get_witnesses function from W3, see docstring from that
               function for more details
         """
-
-        w7s = [self.W7_1, self.W7_2, self.W7_3, self.W7_4, self.W7_5, self.W7_6,
+        
+        if return_type == "operators":
+            return [self.W7_1, self.W7_2, self.W7_3, self.W7_4, self.W7_5, self.W7_6,
                self.W7_7, self.W7_8, self.W7_9, self.W7_10, self.W7_11, self.W7_12,
                self.W7_13, self.W7_14, self.W7_15, self.W7_16, self.W7_17, self.W7_18,
                self.W7_19, self.W7_20, self.W7_21, self.W7_22, self.W7_23, self.W7_24,
@@ -2395,37 +2342,11 @@ class W7(W8):
                self.W7_97, self.W7_98, self.W7_99, self.W7_100, self.W7_101, self.W7_102,
                self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
         
-        stokes = [None] * 108
-        for i in range(108):
-            stokes[i] = self.W7_stokes(i, theta, alpha, beta, gamma)
-        
-        if return_type == "stokes":
-            return stokes
-        
-        ## Return operators
-        if return_type == "operators":
-            return w7s
+        elif return_type == "stokes":
+            return [self.W_stokes(idx, theta, alpha, beta, gamma) for idx in range(1, 109)]
         
         elif return_type == "vals":
-            # Check to see that all parameters are given
-            assert theta is not None, "ERROR: theta not given"
-            assert alpha is not None, "ERROR: alpha not given"
-            assert beta is not None, "ERROR: beta not given"
-            assert gamma is not None, "ERROR: gamma not given"
-
-            # Get the W8 operators for the given parameters
-            for i, W in enumerate(stokes):
-                # every 3rd witness needs gamma (NOTE: i is zero-indexed)
-                if i % 3 == 2:
-                    stokes[i] = W(theta, alpha, beta, gamma)
-                else:
-                    stokes[i] = W(theta, alpha, beta)
-            
-            # Calculate the expectation values
-            values = []
-            for w in stokes:
-                values += [0.0625 * np.dot(self.stokes, w)] # 0.0625 is 1/16
-            return values
+            return [self.expec_val(idx, theta, alpha, beta, gamma) for idx in range(1, 109)]
         
         else: # invalid return_type
             raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
