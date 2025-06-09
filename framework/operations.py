@@ -123,13 +123,13 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     # Get necessary witnesses
     if type(witness_classes) != list:
         num_classes = 1
-        all_W_stokes = [[witness_classes(rho=rho, counts=counts).get_witnesses("stokes")]]
+        all_W_stokes = [[witness_classes(rho=rho, counts=counts).W_stokes]]
         rho_stokes = witness_classes(rho=rho, counts=counts).stokes
     else:
         all_W_stokes = []
         num_classes = 0
         for c in witness_classes:
-            all_W_stokes.append(c(rho=rho, counts=counts).get_witnesses("stokes"))
+            all_W_stokes.append(c(rho=rho, counts=counts).W_stokes)
             num_classes += 1
         rho_stokes = states.W3(rho=rho, counts=counts).stokes
 
@@ -269,6 +269,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
                 # use the right number of parameters
                 param_vars = [theta, alpha, beta, gamma][:num_params]
+                print("class", class_idx, "witness", witness_idx)
                 this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
 
                 if this_min_val < min_val:
