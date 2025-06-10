@@ -11,7 +11,7 @@ from uncertainties import ufloat
 from uncertainties import unumpy as unp
 
 from sample_rho import *
-from new_rho_methods import *
+from rho_methods import *
 
 
 #To read older data files see: FILENAME
@@ -19,7 +19,7 @@ from new_rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'ria_HDVA'
+DATA_PATH = 'ria_hd_negpi_3_va'
 
 def get_rho_from_file(filename, verbose=True, angles=None):
     '''Function to read in experimental density matrix from file. For trials > 14. N.b. up to trial 23, angles were not saved (but recorded in lab_notebook markdown file). Also note that in trials 20 (E0 eta = 45), 21 (blueo of E0 (eta = 45, chi = 0, 18)), 22 (E0 eta = 60), and 23 (E0 eta = 60, chi = -90), there was a sign error in the phi phase in the Jones matrices, so will recalculate the correct density matrix; ** the one saved in the file as the theoretical density matrix is incorrect **
@@ -97,26 +97,26 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         
         # calculate W and W' theory
         W_T_ls = compute_witnesses(rho = rho_actual, verbose = True, return_params = True) # theory
-        print("W_T_ls computed")
+        print("W_T_ls: ", W_T_ls)
         W_AT_ls = compute_witnesses(rho = adjust_rho(rho_actual, [eta, chi], 0.95), verbose = True) # adjusted theory
-        print("W_AT_ls computed")
+        print("W_AT_ls: ", W_AT_ls)
         # calculate W and W' expt
         W_expt_ls = compute_witnesses(rho = rho, expt=True, counts=unp.uarray(un_proj, un_proj_unc), verbose = True, return_params = True)
-        print("W_expt_ls computed")
+        print("W_expt_ls: ", W_expt_ls)
         
         # parse lists
         W_min_T = W_T_ls[0]
         Wp_t1_T = W_T_ls[1]
         Wp_t2_T = W_T_ls[2]
         Wp_t3_T = W_T_ls[3]
-        W_name_T = W_T_ls[4]
-        Wp1_name_T = W_T_ls[5]
-        Wp2_name_T = W_T_ls[6]
-        Wp3_name_T = W_T_ls[7]
-        W_param_T = W_T_ls[8]
-        Wp1_param_T = W_T_ls[9]
-        Wp2_param_T = W_T_ls[10]
-        Wp3_param_T = W_T_ls[11]
+        # W_name_T = W_T_ls[4]
+        # Wp1_name_T = W_T_ls[5]
+        # Wp2_name_T = W_T_ls[6]
+        # Wp3_name_T = W_T_ls[7]
+        # W_param_T = W_T_ls[8]
+        # Wp1_param_T = W_T_ls[9]
+        # Wp2_param_T = W_T_ls[10]
+        # Wp3_param_T = W_T_ls[11]
         #print('The minimized first triplet W prime is:', Wp1_name_T)
         # ---- #
         # not returning params for adjusted theory at the moment
@@ -124,10 +124,10 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         Wp_t1_AT = W_AT_ls[1]
         Wp_t2_AT = W_AT_ls[2]
         Wp_t3_AT = W_AT_ls[3]
-        W_name_AT = W_AT_ls[4]
-        Wp1_name_AT = W_AT_ls[5]
-        Wp2_name_AT = W_AT_ls[6]
-        Wp3_name_AT = W_AT_ls[7]
+        # W_name_AT = W_AT_ls[4]
+        # Wp1_name_AT = W_AT_ls[5]
+        # Wp2_name_AT = W_AT_ls[6]
+        # Wp3_name_AT = W_AT_ls[7]
         
         # ---- #
         # using propogated uncertainty
@@ -143,14 +143,14 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         Wp_t2_unc = unp.std_devs(W_expt_ls[2])
         Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
-        W_name_expt = W_expt_ls[4]
-        Wp1_name_expt = W_expt_ls[5]
-        Wp2_name_expt = W_expt_ls[6]
-        Wp3_name_expt = W_expt_ls[7]
-        W_param_expt = W_expt_ls[8]
-        Wp1_param_expt = W_expt_ls[9]
-        Wp2_param_expt = W_expt_ls[10]
-        Wp3_param_expt = W_expt_ls[11]
+        # W_name_expt = W_expt_ls[4]
+        # Wp1_name_expt = W_expt_ls[5]
+        # Wp2_name_expt = W_expt_ls[6]
+        # Wp3_name_expt = W_expt_ls[7]
+        # W_param_expt = W_expt_ls[8]
+        # Wp1_param_expt = W_expt_ls[9]
+        # Wp2_param_expt = W_expt_ls[10]
+        # Wp3_param_expt = W_expt_ls[11]
     
         #print('THE CURRENT POINT IS POINT:', i)
         #print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)
@@ -431,9 +431,9 @@ if __name__ == '__main__':
     #Update here
     TRIAL = 1
     name = 'hd_negpi_3_va'
-    id = 'ria_HDVA'
-    #chis = np.linspace(0.001, np.pi/2, 6)
-    chis = [np.pi/2]
+    id = 'ria_hd_negpi_3_va'
+    chis = np.linspace(0.001, np.pi/2, 6)
+    #chis = [np.pi/2]
 
     rho_actuals = []
     filenames = []
