@@ -125,7 +125,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             all_W_stokes.append(c(rho=rho, counts=counts).expec_val)
             num_classes += 1
 
-    def optimize(W_val, witness_idx, params):
+    def optimize(W_val, witness_idx, params, bounds):
         """
         Generic minimization loop that works for any number of minimization parameters
 
@@ -149,7 +149,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             return loss_np
     
         # Scipy minimization using BFGS gradient descent
-        min_W = minimize(loss, params, method="BFGS")
+        min_W = minimize(loss, params, method="L-BFGS-B", bounds=bounds)
 
         # return the best-fit params and the minimized expectation value
         return min_W.x, min_W.fun
@@ -199,6 +199,8 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             beta_bound = 2*np.pi
             gamma_bound = 2*np.pi
 
+        bounds = [(lower_bound, theta_bound), (lower_bound, alpha_bound), (lower_bound, beta_bound), (lower_bound, gamma_bound)][:num_params]
+
         # Set the initial "best value" to infinity
         min_val = float("inf")
         
@@ -212,7 +214,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
                 # use the right number of parameters
                 param_vars = [theta, alpha, beta, gamma][:num_params]
-                this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars)
+                this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars, bounds)
 
                 if this_min_val < min_val:
                     best_param = this_min_params
@@ -224,7 +226,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             beta = lower_bound
             gamma = lower_bound
             param_vars = [theta, alpha, beta, gamma][:num_params]
-            this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars)
+            this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars, bounds)
             if this_min_val < min_val:
                     best_param = this_min_params
                     min_val = this_min_val
@@ -235,7 +237,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             beta = beta_bound
             gamma = gamma_bound
             param_vars = [theta, alpha, beta, gamma][:num_params]
-            this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars)
+            this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars, bounds)
             if this_min_val < min_val:
                     best_param = this_min_params
                     min_val = this_min_val
