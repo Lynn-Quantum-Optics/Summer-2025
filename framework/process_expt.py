@@ -360,7 +360,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
         print("Minimizing witnesses for experimental data...")
-        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
         
         # check if we calculated W7s and W8s
         do_W7s_W8s = False
@@ -441,23 +441,90 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # Experimental data
         data = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, data, "E", W_E_unc)
 
+        print("\n------\nW3s\n------")
         print("\nTheoretical W3 min:", data['W3']['min_T'])
         print("Adjusted theory W3 min:", data['W3']['min_AT'])
         print("Experimental W3 min:", data['W3']['min_E'], "+/-", data['W3']['unc_E'])
+        # Initialize W3 objects with the experimental and theoretical rhos
+        W3_E_obj = sw.W3(rho=rho)
+        W3_T_obj = sw.W3(rho=rho_actual)
+        # Save W3's min name and params
+        W3_idx_T = data['W3']['name_T']
+        W3_param_T = data['W3']['param_T']
+        W3_idx_E = data['W3']['name_E']
+        W3_param_E = data['W3']['param_E']
+        # Print variables and expectation values
+        print("\nFor theoretical data, the most minimized W3 was W3_" + W3_idx_T)
+        print("It had the following theta:", W3_param_T)
+        print("Theoretical W3 min val based on theoretical params:", W3_T_obj.expec_val(int(W3_idx_T), *W3_param_T))
+        print("Experimental W3 min val based on theoretical params:", W3_E_obj.expec_val(int(W3_idx_T), *W3_param_T))
+        print("\nFor experimental data, the most minimized W3 was W3_" + W3_idx_E)
+        print("It had the following theta:", W3_param_E)
+        print("Theoretical W3 min val based on experimental params:", W3_T_obj.expec_val(int(W3_idx_E), *W3_param_E))
+        print("Experimental W3 min val based on experimental params:", W3_E_obj.expec_val(int(W3_idx_E), *W3_param_E))
 
+        print("\n------\nW5 t1\n------")
         print("\nTheoretical W5 triplet 1 min:", data['W5']['t1']['min_T'])
         print("Adjusted theory W5 triplet 1 min:", data['W5']['t1']['min_AT'])
         print("Experimental W5 triplet 1 min:", data['W5']['t1']['min_E'], "+/-", data['W5']['t1']['unc_E'])
+        # Initialize W5 objects with the experimental and theoretical rhos
+        W5_E_obj = sw.W5(rho=rho)
+        W5_T_obj = sw.W5(rho=rho_actual)
+        # Save W5 t1's experimental min name and params
+        W5t1_idx_T = data['W5']['t1']['name_T']
+        W5t1_params_T = data['W5']['t1']['params_T']
+        W5t1_idx_E = data['W5']['t1']['name_E']
+        W5t1_params_E = data['W5']['t1']['params_E']
+        # Print variables and expectation values
+        print("\nFor theoretical data, the most minimized W5 t1 was W5_" + W5t1_idx_T)
+        print("It had the following params:", W5t1_params_T)
+        print("Theoretical W5 t1 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t1_idx_T), *W5t1_params_T))
+        print("Experimental W5 t1 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t1_idx_T), *W5t1_params_T))
+        print("\nFor experimental data, the most minimized W5 t1 was W5_" + W5t1_idx_E)
+        print("It had the following params:", W5t1_params_E)
+        print("Theoretical W5 t1 min val based on experimental params:", W5_T_obj.expec_val(int(W5t1_idx_E), *W5t1_params_E))
+        print("Experimental W5 t1 min val based on experimental params:", W5_E_obj.expec_val(int(W5t1_idx_E), *W5t1_params_E))
 
+        print("\n------\nW5 t2\n------")
         print("\nTheoretical W5 triplet 2 min:", data['W5']['t2']['min_T'])
         print("Adjusted theory W5 triplet 2 min:", data['W5']['t2']['min_AT'])
         print("Experimental W5 triplet 2 min:", data['W5']['t2']['min_E'], "+/-", data['W5']['t2']['unc_E'])
+        # Save W5 t2's experimental min name and params
+        W5t2_idx_T = data['W5']['t2']['name_T']
+        W5t2_params_T = data['W5']['t2']['params_T']
+        W5t2_idx_E = data['W5']['t2']['name_E']
+        W5t2_params_E = data['W5']['t2']['params_E']
+        # Print variables and expectation values
+        print("\nFor theoretical data, the most minimized W5 t2 was W5_" + W5t2_idx_T)
+        print("It had the following params:", W5t2_params_T)
+        print("Theoretical W5 t2 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t2_idx_T), *W5t2_params_T))
+        print("Experimental W5 t2 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t2_idx_T), *W5t2_params_T))
+        print("\nFor experimental data, the most minimized W5 t2 was W5_" + W5t2_idx_E)
+        print("It had the following params:", W5t2_params_E)
+        print("Theoretical W5 t2 min val based on experimental params:", W5_T_obj.expec_val(int(W5t2_idx_E), *W5t2_params_E))
+        print("Experimental W5 t2 min val based on experimental params:", W5_E_obj.expec_val(int(W5t2_idx_E), *W5t2_params_E))
 
+        print("\n------\nW5 t3\n------")
         print("\nTheoretical W5 triplet 3 min:", data['W5']['t3']['min_T'])
         print("Adjusted theory W5 triplet 3 min:", data['W5']['t3']['min_AT'])
         print("Experimental W5 triplet 3 min:", data['W5']['t3']['min_E'], "+/-", data['W5']['t3']['unc_E'])
+        # Save W5 t3's experimental min name and params
+        W5t3_idx_T = data['W5']['t3']['name_T']
+        W5t3_params_T = data['W5']['t3']['params_T']
+        W5t3_idx_E = data['W5']['t3']['name_E']
+        W5t3_params_E = data['W5']['t3']['params_E']
+        # Print variables and expectation values
+        print("\nFor theoretical data, the most minimized W5 t3 was W5_" + W5t3_idx_T)
+        print("It had the following params:", W5t3_params_T)
+        print("Theoretical W5 t3 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t3_idx_T), *W5t3_params_T))
+        print("Experimental W5 t3 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t2_idx_T), *W5t3_params_T))
+        print("\nFor experimental data, the most minimized W5 t3 was W5_" + W5t3_idx_E)
+        print("It had the following params:", W5t3_params_E)
+        print("Theoretical W5 t3 min val based on experimental params:", W5_T_obj.expec_val(int(W5t3_idx_E), *W5t3_params_E))
+        print("Experimental W5 t3 min val based on experimental params:", W5_E_obj.expec_val(int(W5t2_idx_E), *W5t3_params_E))
 
         if do_W7s_W8s:
+            # TODO: fix to reflect new groupings
             print("\nTheoretical W7 min:", data['W7']['min_T'])
             print("Adjusted theory W3 min:", data['W7']['min_AT'])
             print("Experimental W3 min:", data['W7']['min_E'], "+/-", data['W7']['unc_E'])
