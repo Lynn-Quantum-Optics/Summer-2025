@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 import operations as op
 
 #######################
@@ -8,10 +9,10 @@ import operations as op
 # Single-qubit States
 H = op.ket([1,0])
 V = op.ket([0,1])
-R = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
-L = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1j)])
-D = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1)])
-A = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1)])
+R = op.ket([1/tf.math.sqrt(2) * 1, 1/tf.math.sqrt(2) * (-1j)])
+L = op.ket([1/tf.math.sqrt(2) * 1, 1/tf.math.sqrt(2) * (1j)])
+D = op.ket([1/tf.math.sqrt(2) * 1, 1/tf.math.sqrt(2) * (1)])
+A = op.ket([1/tf.math.sqrt(2) * 1, 1/tf.math.sqrt(2) * (-1)])
 
 ### Jones/Column Vectors & Density Matrices ###
 HH = op.ket([1, 0, 0, 0])
@@ -24,10 +25,10 @@ VH_RHO = op.get_rho(VH)
 VV_RHO = op.get_rho(VV)
 
 ### Bell States & Density Matrices ###
-PHI_P = (HH + VV)/np.sqrt(2)
-PHI_M = (HH - VV)/np.sqrt(2)
-PSI_P = (HV + VH)/np.sqrt(2)
-PSI_M = (HV - VH)/np.sqrt(2)
+PHI_P = (HH + VV)/tf.math.sqrt(2)
+PHI_M = (HH - VV)/tf.math.sqrt(2)
+PSI_P = (HV + VH)/tf.math.sqrt(2)
+PSI_M = (HV - VH)/tf.math.sqrt(2)
 PHI_P_RHO = op.get_rho(PHI_P)
 PHI_M_RHO = op.get_rho(PHI_M)
 PSI_P_RHO = op.get_rho(PSI_P)
@@ -44,7 +45,7 @@ def E0_PSI(eta, chi, rho = False):
     rho (optional) - if true, return state as a density matrix, 
                      return as vector otherwise
     """
-    state = np.cos(eta)*PSI_P + np.exp(chi*1j)*np.sin(eta)*PSI_M
+    state = tf.math.cos(eta)*PSI_P + tf.math.exp(chi*1j)*tf.math.sin(eta)*PSI_M
 
     if rho:
         return op.get_rho(state)
@@ -60,7 +61,7 @@ def E0_PHI(eta, chi, rho = False):
     rho (optional) - if true, return state as a density matrix, 
                      return as vector otherwise
     """
-    state = np.cos(eta)*PHI_P + np.exp(chi*1j)*np.sin(eta)*PHI_M
+    state = tf.math.cos(eta)*PHI_P + tf.math.exp(chi*1j)*tf.math.sin(eta)*PHI_M
     if rho:
         return op.get_rho(state)
     return state
@@ -76,7 +77,7 @@ def E1(eta, chi, rho = False):
     rho (optional) - if true, return state as a density matrix, 
                      return as vector otherwise
     """
-    state = 1/np.sqrt(2) * (np.cos(eta)*(PSI_P + PSI_M*1j) + np.sin(eta)*np.exp(chi*1j)*(PHI_P + PHI_M*1j))
+    state = 1/tf.math.sqrt(2) * (tf.math.cos(eta)*(PSI_P + PSI_M*1j) + tf.math.sin(eta)*tf.math.exp(chi*1j)*(PHI_P + PHI_M*1j))
     if rho:
         return op.get_rho(state)
     return state
@@ -87,16 +88,16 @@ def ADS(gamma):
     """
     Returns the amplitude damped state with parameter gamma
     """
-    return np.array([[.5, 0, 0, .5*np.sqrt(1-gamma)], 
+    return tf.constant([[.5, 0, 0, .5*tf.math.sqrt(1-gamma)], 
                      [0, 0, 0, 0], [0, 0, .5*gamma, 0], 
-                     [.5*np.sqrt(1-gamma), 0, 0, .5-.5*gamma]])
+                     [.5*tf.math.sqrt(1-gamma), 0, 0, .5-.5*gamma]])
 
 ### Sample state to illustrate power of W5 over W3 ###
 def sample_state(phi):
     """
     Returns a state with parameter phi
     """
-    ex1 = np.cos(phi)*np.kron(H,D) - np.sin(phi)*np.kron(V,A)
+    ex1 = tf.math.cos(phi)*tf.linalg.LinearOperatorKronecker([H,D]) - tf.math.sin(phi)*tf.linalg.LinearOperatorKronecker([V,A])
     return op.get_rho(ex1)
 
 ##################
@@ -123,11 +124,11 @@ PAULI = [np.kron(IDENTITY, IDENTITY), np.kron(IDENTITY, PAULI_X), np.kron(IDENTI
 # Params: 
 #  theta - the angle to rotate by
 def R_z(theta):
-    return np.array([[np.cos(theta/2) - np.sin(theta/2)*1j, 0], 
+    return tf.constant([[np.cos(theta/2) - np.sin(theta/2)*1j, 0], 
                     [0, np.cos(theta/2) + np.sin(theta/2)*1j]])
 
 def R_x(theta):
-    return np.array([[np.cos(theta/2), np.sin(theta/2)*-1j],
+    return tf.constant([[np.cos(theta/2), np.sin(theta/2)*-1j],
                     [np.sin(theta/2)*-1j, np.cos(theta/2)]])
 
 def R_y(theta):

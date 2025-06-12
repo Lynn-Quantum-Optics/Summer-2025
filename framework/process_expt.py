@@ -352,15 +352,15 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         
         # calculate W and W' theory
         print("Minimizing witnesses for theoretical data...")
-        W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
+        W_T_params, W_T_vals = op.minimize_witnesses(sw.W3, rho=rho_actual)
         print("Minimizing witnesses for adjusted theory data...")
-        W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, purity))
+        W_AT_params, W_AT_vals = op.minimize_witnesses(sw.W3, rho=adjust_rho(rho_actual, purity))
 
         # calculate W and W' expt
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
         print("Minimizing witnesses for experimental data...")
-        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+        W_E_params, W_E_vals = op.minimize_witnesses(sw.W3, counts=flat_un_proj)
         
         # check if we calculated W7s and W8s
         do_W7s_W8s = False

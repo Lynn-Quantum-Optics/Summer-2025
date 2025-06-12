@@ -19,13 +19,23 @@ def ket(state):
     Example: ket([1, 0]) -> [[1]
                              [0]]
     """
-    return np.array(state, dtype=complex).reshape(-1,1)
+    vec = tf.constant(state, dtype=complex)
+    return tf.reshape(vec, [-1, 1])
 
 def adjoint(state):
     """
     Returns the adjoint of a state vector
     """
-    return np.conjugate(state).T
+    return tf.linalg.adjoint(state)
+
+def tf_kron(op1, op2):
+    """
+    Computes the Kronecker product (or "tensor product") of two linear operators
+    that are TensorFlow objects. For two operators A = [a_00, a_01, ...] and
+    B = [b_00, b_01, ...]
+    Parameters:
+        op1 and op2: The operators for which to compute the Kronecker product.
+    """
 
 def get_rho(state):
     """
@@ -33,7 +43,7 @@ def get_rho(state):
 
     Param: state - the 2-qubit state vector
     """
-    return state @ adjoint(state)
+    return tf.matmul(state, adjoint(state))
 
 def partial_transpose(rho, subsys='B'):
     """ 
@@ -51,25 +61,28 @@ def partial_transpose(rho, subsys='B'):
     b3 = rho[2:, :2]
     b4 = rho[2:, 2:]
 
-    PT = np.array(np.block([[b1.T, b2.T], [b3.T, b4.T]]))
+    b12 = tf.concat([tf.transpose(b1), tf.transpose(b2)], axis=1)
+    b34 = tf.concat([tf.transpose(b3), tf.transpose(b4)], axis=1)
+    PT = tf.concat([b12, b34], axis=0)
 
     if subsys=='B':
         return PT
     elif subsys=='A':
-        return PT.T
+        return tf.transpose(PT)
 
 # Rotation operations
 def rotate_z(m, theta):
     """Rotate matrix m by theta about the z axis"""
-    return states.R_z(theta) @ m @ adjoint(states.R_z(theta))
+    
+    return tf.matmul(states.R_z(theta), tf.matmul(m, adjoint(states.R_z(theta))))
 
 def rotate_x(m, theta):
     """Rotate matrix m by theta about the x axis"""
-    return states.R_x(theta) @ m @ adjoint(states.R_x(theta))
+    return tf.matmul(states.R_x(theta), tf.matmul(m, adjoint(states.R_x(theta))))
 
 def rotate_y(m, theta):
     """Rotate matrix m by theta about the y axis"""
-    return states.R_y(theta) @ m @ adjoint(states.R_y(theta))
+    return tf.matmul(states.R_y(theta), tf.matmul(m, adjoint(states.R_y(theta))))
 
 def rotate_m(m, n):
     """
@@ -81,7 +94,7 @@ def rotate_m(m, n):
 
     NOTE: m and n must be of the same size
     """
-    return n @ m @ adjoint(n)
+    return tf.matmul(n, tf.matmul(m, adjoint(n)))
 
 
 ##################
@@ -115,21 +128,16 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     min_params = []
     min_vals = []
 
-    # Check if we are dealing with experimental data, i.e. uncertainties
-    expt = False
-    if counts is not None:
-        expt = True
-
     # Get necessary witnesses
     if type(witness_classes) != list:
         num_classes = 1
-        all_W_stokes = [[witness_classes(rho=rho, counts=counts).W_stokes]]
+        all_W_stokes = [[witness_classes(rho=rho, counts=counts).expec_val]]
         rho_stokes = witness_classes(rho=rho, counts=counts).stokes
     else:
         all_W_stokes = []
         num_classes = 0
         for c in witness_classes:
-            all_W_stokes.append(c(rho=rho, counts=counts).W_stokes)
+            all_W_stokes.append(c(rho=rho, counts=counts).expec_val)
             num_classes += 1
         rho_stokes = states.W3(rho=rho, counts=counts).stokes
 
@@ -139,21 +147,14 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         """
         return tf.constant(s, dtype=tf.float64)
 
-    def loss(W_stokes, expt, rho_stokes):
+    def loss(W_stokes, rho_stokes):
         """
         Loss function for minimization: 1/16 * (S_w dot S_rho)
 
         NOTE: this is the expectation value of W defined by the Stokes params
         """
         W_stokes_tf = svec_to_tf(W_stokes)
-        rho_stokes_np = np.empty(16)
-        if expt:
-            # if data has uncertainties, first convert to np.array
-            for stokes_idx in range(len(rho_stokes)):
-                rho_stokes_np[stokes_idx] = unp.nominal_value(rho_stokes[stokes_idx])
-        else:
-            rho_stokes_np = rho_stokes
-        rho_stokes_tf = svec_to_tf(rho_stokes_np)
+        rho_stokes_tf = svec_to_tf(rho_stokes)
         loss = 0.0625 * tf.tensordot(W_stokes_tf, rho_stokes_tf, axes=1)
         return loss
     
@@ -167,7 +168,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     )
     optimizer = tf.optimizers.Adam(learning_rate=lr_schedule)
 
-    def optimize(W_stokes, expt, rho_stokes, params, threshold=1e-10, max_iters=1000):
+    def optimize(W_stokes, rho_stokes, params, threshold=1e-10, max_iters=1000):
         """
         Generic minimization loop that works for any number of minimization parameters
 
@@ -188,13 +189,14 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
         # Optimization loop, stops when minimized value starts converging or when
         # the maximum iterations 
-        for _ in range(max_iters):
+        for i in range(max_iters):
             with tf.GradientTape() as tape:
-                loss_value = loss(W_stokes, expt, rho_stokes)
+                loss_value = loss(W_stokes, rho_stokes)
             loss_real = tf.math.real(loss_value).numpy()
         
             # Check if minimized value has converged within the threshold
             if abs(prev_loss - loss_real) < threshold:
+                print("Broke gradient optimization on iteration", i)
                 break
             prev_loss = loss_real
 
@@ -269,7 +271,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
                 # use the right number of parameters
                 param_vars = [theta, alpha, beta, gamma][:num_params]
-                this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
+                this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), rho_stokes, param_vars)
 
                 if this_min_val < min_val:
                     best_param = this_min_params
@@ -281,7 +283,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             beta = tf.Variable(lower_bound, dtype=tf.float64)
             gamma = tf.Variable(lower_bound, dtype=tf.float64)
             param_vars = [theta, alpha, beta, gamma][:num_params]
-            this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
+            this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), rho_stokes, param_vars)
             if this_min_val < min_val:
                     best_param = this_min_params
                     min_val = this_min_val
@@ -292,7 +294,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             beta = tf.Variable(beta_bound, dtype=tf.float64)
             gamma = tf.Variable(gamma_bound, dtype=tf.float64)
             param_vars = [theta, alpha, beta, gamma][:num_params]
-            this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), expt, rho_stokes, param_vars)
+            this_min_params, this_min_val = optimize(W_class(witness_idx, *param_vars), rho_stokes, param_vars)
             if this_min_val < min_val:
                     best_param = this_min_params
                     min_val = this_min_val
