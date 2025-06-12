@@ -407,7 +407,7 @@ class W3:
         stokes = [1,                                                                         # 0
             (self.dd - self.da + self.ad - self.aa)/(self.dd + self.da + self.ad + self.aa),
             (self.rr + self.lr - self.rl - self.ll)/(self.rr + self.lr + self.rl + self.ll),
-            (self.hh - self.hv - self.vh - self.vv)/(self.hh + self.hv + self.vh + self.vv),
+            (self.hh - self.hv + self.vh - self.vv)/(self.hh + self.hv + self.vh + self.vv),
             (self.dd + self.da - self.ad - self.aa)/(self.dd + self.da + self.ad + self.da),
             (self.dd - self.da - self.ad + self.aa)/(self.dd + self.da + self.ad + self.aa), # 5
             (self.dr - self.dl - self.ar + self.al)/(self.dr + self.dl + self.ar + self.al),
