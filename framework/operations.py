@@ -117,12 +117,12 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     # Get necessary witnesses
     if type(witness_classes) != list:
         num_classes = 1
-        all_W_stokes = [[witness_classes(rho=rho, counts=counts).expec_val]]
+        all_expec_vals = [[witness_classes(rho=rho, counts=counts).expec_val]]
     else:
-        all_W_stokes = []
+        all_expec_vals = []
         num_classes = 0
         for c in witness_classes:
-            all_W_stokes.append(c(rho=rho, counts=counts).expec_val)
+            all_expec_vals.append(c(rho=rho, counts=counts).expec_val)
             num_classes += 1
 
     def optimize(W_val, witness_idx, params, bounds):
@@ -134,6 +134,14 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             witness_idx:          iterator that keeps track of which witness we are minimizing
             params:               the witness parameters to be minimized (i.e. theta, alpha, beta)
         """
+        def print_callback(params):
+            """Callback function called after every iteration of scipy minimization.
+            Prints the current iterator value, expectation value, and parameters.
+            """
+            expec_val = loss(params)
+            #print(expec_val)
+            print_callback.iter += 1
+
         def loss(params):
             """
             Uses the expectation value of each witness as the loss function for minimization
@@ -147,9 +155,12 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             else:
                 loss_np = loss
             return loss_np
+        
+        # Initialize the iteration number for the callback function
+        print_callback.iter = 0
     
         # Scipy minimization using BFGS gradient descent
-        min_W = minimize(loss, params, method="L-BFGS-B", bounds=bounds)
+        min_W = minimize(loss, params, method="L-BFGS-B", bounds=bounds, callback=print_callback)
 
         # return the best-fit params and the minimized expectation value
         return min_W.x, min_W.fun
@@ -157,21 +168,20 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     # Minimize each witness
     # TODO: look into MULTITHREADING or multipooling
-
-    for class_idx, W_class in enumerate(all_W_stokes):
-        if class_idx == 0: #W3s
+    for class_idx, W_class in zip([3, 5, 7, 8], all_expec_vals):
+        if class_idx == 3:
             num_witnesses = 6
             num_params = 1
 
-        elif class_idx == 1: #W5s
+        elif class_idx == 5:
             num_witnesses = 9
             num_params = 3
 
-        elif class_idx == 2: #W7s
+        elif class_idx == 7:
             num_witnesses = 108
             num_params = 4
 
-        elif class_idx == 3: #W8s
+        elif class_idx == 8:
             num_witnesses = 36
             num_params = 4
 
@@ -204,7 +214,8 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         # Set the initial "best value" to infinity
         min_val = float("inf")
         
-        for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1         
+        for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1
+            #print("\nMinimizing witness W" + str(class_idx) + "_" + str(witness_idx))      
             # Try different random initial guesses and use the best result
             for _ in range(num_guesses):
                 theta = np.random.uniform(low=lower_bound, high=theta_bound)

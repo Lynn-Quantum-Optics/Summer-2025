@@ -350,6 +350,12 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         ## MINIMIZING WITNESSES
         #########################
         
+        # Redirects print statements to an output file.
+        # NOTE: MUST REMOVE TO PRINT IN TERMINAL
+        import sys
+        original_stdout = sys.stdout
+        sys.stdout = open('chi0.001_min_output.txt', 'w')
+
         # calculate W and W' theory
         print("Minimizing witnesses for theoretical data...")
         W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
@@ -361,7 +367,11 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         flat_un_proj_unc = un_proj_unc.flatten()
         print("Minimizing witnesses for experimental data...")
         W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
-        
+
+        # close output file
+        sys.stdout.close()
+        sys.stdout = original_stdout
+
         # check if we calculated W7s and W8s
         do_W7s_W8s = False
         if len(W_E_vals) > 15:
@@ -830,6 +840,11 @@ def get_theo_rho(state, chi):
 
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
+
+    if state =='HAVD_mix':
+        psi_3 = np.cos(chi/2) * np.kron(H, A) - 1j * np.sin(chi/2) * np.kron(V, D)
+        psi_4 = np.cos(chi/2) * np.kron(H, R) - 1j * np.sin(chi/2) * np.kron(V, L)
+        phi = 0.65 * np.outer(psi_3, psi_3) + 0.35 * np.outer(psi_4, psi_4)
     
     # create rho and return it
     rho = phi @ phi.conj().T
