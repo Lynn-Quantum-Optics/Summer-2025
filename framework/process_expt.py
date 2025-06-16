@@ -1,14 +1,14 @@
 """
 Authors: Lev G., Isabel G.
-Last updated: 6/9/2025
+Last updated: 6/16/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
 or update the path variables to import them. This file no longer depends on rho_methods.py or
 sample_rho.py.
 
-To run this file, you don't need to copy or edit it. Simply run it and fill in the user inputs as
-prompted in your command line.
+To run this file, first change the figure title as desired on line 723, then run this file and fill
+in the user inputs when prompted in your command line.
 """
 
 print("initializing...")
@@ -645,12 +645,12 @@ def make_plots_E0(dfname):
         
         chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_{T}$', color='navy')
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_T^3$', color='navy')
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}^3$', linestyle='dashed', color='blue')
         ax.errorbar(chi_eta, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue', markersize=10)
 
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_{T}'$", color='crimson')
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_T^5$", color='crimson')
+        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}^5$", linestyle='dashed', color='red')
         ax.errorbar(chi_eta, W5_min_E, yerr=W5_unc, fmt='o', color='salmon', markersize=10)
         #ax.set_title(f'$\eta = 45\degree$', fontsize=18)
         ax.set_ylabel('Witness value', fontsize=20)
@@ -704,12 +704,12 @@ def make_plots_E0(dfname):
 
             chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
 
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_T$', color='navy')
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}$', linestyle='dashed', color='blue')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_T^3$', color='navy')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}^3$', linestyle='dashed', color='blue')
             ax[i].errorbar(chi_eta, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue')
 
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_{T}'$", color='crimson')
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}'$", linestyle='dashed', color='red')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_T^5$", color='crimson')
+            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}^5$", linestyle='dashed', color='red')
             ax[i].errorbar(chi_eta, W5_min_E, yerr=W5_unc, fmt='o', color='salmon')
 
             ax[i].set_title('$\eta = 30\degree$', fontsize=33)
@@ -719,10 +719,10 @@ def make_plots_E0(dfname):
             ax[i].set_xlabel('$\chi$', fontsize=31)
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
-            
-    plt.suptitle('Entangled State Witnessed by 2nd W5 Triplet', fontsize=25)
+
+    plt.suptitle("Min. Witness Values for $\cos(\\frac{\chi}{2}) |HD \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{3}} |VA \u27E9$", fontsize=20)
     plt.tight_layout()
-    plt.savefig(join(DATA_PATH, f'{STATE_ID}.pdf'))
+    plt.savefig(join(DATA_PATH, f'{STATE_ID}_trial{TRIAL}.pdf'))
     plt.show()
 
 def ket(data):
