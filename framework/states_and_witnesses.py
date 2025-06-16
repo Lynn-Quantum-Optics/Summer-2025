@@ -8,8 +8,8 @@ import operations as op
 # Single-qubit States
 H = op.ket([1,0])
 V = op.ket([0,1])
-R = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
-L = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1j)])
+R = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1j)])
+L = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
 D = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1)])
 A = op.ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1)])
 
@@ -343,7 +343,7 @@ class W3:
         the witness superscripts
         """
         W_stokes = self.W_stokes(idx, theta)
-        return 0.0625 * np.dot(self.stokes, W_stokes) # 0.0625 is 1/16
+        return 0.25 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None):
         """
@@ -733,7 +733,7 @@ class W5(W3):
         the witness superscripts
         """
         W_stokes = self.W_stokes(idx, theta, alpha, beta)
-        return 0.0625 * np.dot(self.stokes, W_stokes)
+        return 0.25 * np.dot(self.stokes, W_stokes)
     
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None):
         """
@@ -1235,7 +1235,7 @@ class W8(W5):
         the witness superscripts
         """
         W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
-        return 0.0625 * np.dot(self.stokes, W_stokes)
+        return 0.25 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
         """
@@ -2306,7 +2306,7 @@ class W7(W8):
         the witness superscripts
         """
         W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
-        return 0.0625 * np.dot(self.stokes, W_stokes)
+        return 0.25 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
         """
