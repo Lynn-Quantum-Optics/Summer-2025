@@ -452,6 +452,9 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         data = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, data, "E", W_E_unc)
 
         print("\n------\nW3s\n------")
+        print("\nAll theoretical W3s:", W_T_vals[:6])
+        print("All adjusted theory W3s:", W_AT_vals[:6])
+        print("All experimental W3s:", W_E_vals[:6])
         print("\nTheoretical W3 min:", data['W3']['min_T'])
         print("Adjusted theory W3 min:", data['W3']['min_AT'])
         print("Experimental W3 min:", data['W3']['min_E'], "+/-", data['W3']['unc_E'])
@@ -474,6 +477,9 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Experimental W3 min val based on experimental params:", W3_E_obj.expec_val(int(W3_idx_E), *W3_param_E))
 
         print("\n------\nW5 t1\n------")
+        print("\nAll theoretical W5s:", W_T_vals[6:9])
+        print("All adjusted theory W5s:", W_AT_vals[6:9])
+        print("All experimental W5s:", W_E_vals[6:9])
         print("\nTheoretical W5 triplet 1 min:", data['W5']['t1']['min_T'])
         print("Adjusted theory W5 triplet 1 min:", data['W5']['t1']['min_AT'])
         print("Experimental W5 triplet 1 min:", data['W5']['t1']['min_E'], "+/-", data['W5']['t1']['unc_E'])
@@ -496,6 +502,9 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Experimental W5 t1 min val based on experimental params:", W5_E_obj.expec_val(int(W5t1_idx_E), *W5t1_params_E))
 
         print("\n------\nW5 t2\n------")
+        print("\nAll theoretical W5s:", W_T_vals[9:12])
+        print("All adjusted theory W5s:", W_AT_vals[9:12])
+        print("All experimental W5s:", W_E_vals[9:12])
         print("\nTheoretical W5 triplet 2 min:", data['W5']['t2']['min_T'])
         print("Adjusted theory W5 triplet 2 min:", data['W5']['t2']['min_AT'])
         print("Experimental W5 triplet 2 min:", data['W5']['t2']['min_E'], "+/-", data['W5']['t2']['unc_E'])
@@ -515,6 +524,9 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Experimental W5 t2 min val based on experimental params:", W5_E_obj.expec_val(int(W5t2_idx_E), *W5t2_params_E))
 
         print("\n------\nW5 t3\n------")
+        print("\nAll theoretical W5s:", W_T_vals[12:15])
+        print("All adjusted theory W5s:", W_AT_vals[12:15])
+        print("All experimental W5s:", W_E_vals[12:15])
         print("\nTheoretical W5 triplet 3 min:", data['W5']['t3']['min_T'])
         print("Adjusted theory W5 triplet 3 min:", data['W5']['t3']['min_AT'])
         print("Experimental W5 triplet 3 min:", data['W5']['t3']['min_E'], "+/-", data['W5']['t3']['unc_E'])
@@ -535,13 +547,14 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
 
         if do_W7s_W8s:
             # TODO: fix to reflect new groupings
-            print("\nTheoretical W7 min:", data['W7']['min_T'])
-            print("Adjusted theory W3 min:", data['W7']['min_AT'])
-            print("Experimental W3 min:", data['W7']['min_E'], "+/-", data['W7']['unc_E'])
+            print("")
+            # print("\nTheoretical W7 min:", data['W7']['min_T'])
+            # print("Adjusted theory W3 min:", data['W7']['min_AT'])
+            # print("Experimental W3 min:", data['W7']['min_E'], "+/-", data['W7']['unc_E'])
 
-            print("\nTheoretical W3 min:", data['W8']['min_T'])
-            print("Adjusted theory W3 min:", data['W8']['min_AT'])
-            print("Experimental W3 min:", data['W8']['min_E'], "+/-", data['W8']['unc_E'])
+            # print("\nTheoretical W3 min:", data['W8']['min_T'])
+            # print("Adjusted theory W3 min:", data['W8']['min_AT'])
+            # print("Experimental W3 min:", data['W8']['min_E'], "+/-", data['W8']['unc_E'])
 
         #######################
         ## BUILDING DATAFRAME
