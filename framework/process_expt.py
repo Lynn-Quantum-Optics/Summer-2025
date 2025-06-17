@@ -366,6 +366,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
         print("Minimizing witnesses for experimental data...")
+        # NOTE: do not put in uncertainties here
         W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
 
         # close output file
@@ -390,18 +391,18 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         
         W5_obj = sw.W5(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
         for i in range(1, 10): # W5s
-            expec_val = W5_obj.expec_val(i, *W_E_params[i+6-1]) # offset for W3s
+            expec_val = W5_obj.expec_val(i, *W_E_params[i+5]) # offset for W3s
             W_E_unc.append(unp.std_devs(expec_val))
 
         if do_W7s_W8s:
             W7_obj = sw.W7(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
             for i in range(1, 109): # W7s
-                expec_val = W7_obj.expec_val(i, *W_E_params[i+6+9-1]) # offset for W3s and W5s
+                expec_val = W7_obj.expec_val(i, *W_E_params[i+14]) # offset for W3s and W5s
                 W_E_unc.append(unp.std_devs(expec_val))
             
             W8_obj = sw.W8(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
             for i in range(1, 37): # W8s
-                expec_val = W8_obj.expec_val(i, *W_E_params[i+6+9+108-1]) # offset for W3s, W5s, W7s
+                expec_val = W8_obj.expec_val(i, *W_E_params[i+122]) # offset for W3s, W5s, W7s
                 W_E_unc.append(unp.std_devs(expec_val))
 
         ##################
