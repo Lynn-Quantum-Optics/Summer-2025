@@ -662,7 +662,7 @@ class W5(W3):
         if self.counts is not None:
             W5.check_counts(self, triplet=2)
 
-        rotation = np.kron(R_x(alpha), R_y(beta))
+        rotation = np.kron(R_x(alpha), R_x(beta))
         return op.rotate_m(w1, rotation)
     
     

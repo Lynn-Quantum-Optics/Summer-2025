@@ -147,14 +147,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             Uses the expectation value of each witness as the loss function for minimization
             """
             loss = W_val(witness_idx, *params)
-
-            # Handle experimental uncertainties
-            loss_np = np.empty(16)
-            if counts is not None:
-                loss_np = unp.nominal_value(loss)
-            else:
-                loss_np = loss
-            return loss_np
+            return loss
         
         # Initialize the iteration number for the callback function
         print_callback.iter = 0
@@ -210,12 +203,12 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             gamma_bound = 2*np.pi
 
         bounds = [(lower_bound, theta_bound), (lower_bound, alpha_bound), (lower_bound, beta_bound), (lower_bound, gamma_bound)][:num_params]
-
-        # Set the initial "best value" to infinity
-        min_val = float("inf")
         
         for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1
-            #print("\nMinimizing witness W" + str(class_idx) + "_" + str(witness_idx))      
+            #print("\nMinimizing witness W" + str(class_idx) + "_" + str(witness_idx))
+            
+            # Set the initial "best value" to infinity
+            min_val = float("inf")
             # Try different random initial guesses and use the best result
             for _ in range(num_guesses):
                 theta = np.random.uniform(low=lower_bound, high=theta_bound)
