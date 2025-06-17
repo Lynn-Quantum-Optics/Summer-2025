@@ -203,23 +203,12 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             gamma_bound = 2*np.pi
 
         bounds = [(lower_bound, theta_bound), (lower_bound, alpha_bound), (lower_bound, beta_bound), (lower_bound, gamma_bound)][:num_params]
-<<<<<<< HEAD
-
-        
-        for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1
-            #print("\nMinimizing witness W" + str(class_idx) + "_" + str(witness_idx))      
-                
-            # Set the initial "best value" to infinity
-            min_val = float("inf")
-            
-=======
         
         for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1
             #print("\nMinimizing witness W" + str(class_idx) + "_" + str(witness_idx))
             
             # Set the initial "best value" to infinity
             min_val = float("inf")
->>>>>>> 400d3e65eadcab6d8ea0e20d15d51e991aacfb1d
             # Try different random initial guesses and use the best result
             for _ in range(num_guesses):
                 theta = np.random.uniform(low=lower_bound, high=theta_bound)
