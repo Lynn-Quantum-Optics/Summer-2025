@@ -85,8 +85,9 @@ def adjust_rho(rho, expt_purity):
     ''' Adjusts theo density matrix to account for experimental impurity
         Multiplies unwanted experimental impurities (top right bottom right block) by expt purity
         to account for non-entangled particles in our system '''
-    for i in range(rho.shape[0]):
-        for j in range(rho.shape[1]):
+    adj_rho = rho.copy()
+    for i in range(adj_rho.shape[0]):
+        for j in range(adj_rho.shape[1]):
             if i < 3:
                 if j < 3:
                     pass
@@ -94,8 +95,8 @@ def adjust_rho(rho, expt_purity):
                 if j > 2:
                     pass
             else:
-                rho[i][j] = expt_purity * rho[i][j]
-    return rho
+                adj_rho[i][j] = expt_purity * adj_rho[i][j]
+    return adj_rho
 
 def get_fidelity(rho1, rho2):
     '''Compute fidelity of 2 density matrices'''
@@ -530,11 +531,11 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("\nFor theoretical data, the most minimized W5 t3 was W5_" + W5t3_idx_T)
         print("It had the following params:", W5t3_params_T)
         print("Theoretical W5 t3 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t3_idx_T), *W5t3_params_T))
-        print("Experimental W5 t3 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t2_idx_T), *W5t3_params_T))
+        print("Experimental W5 t3 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t3_idx_T), *W5t3_params_T))
         print("\nFor experimental data, the most minimized W5 t3 was W5_" + W5t3_idx_E)
         print("It had the following params:", W5t3_params_E)
         print("Theoretical W5 t3 min val based on experimental params:", W5_T_obj.expec_val(int(W5t3_idx_E), *W5t3_params_E))
-        print("Experimental W5 t3 min val based on experimental params:", W5_E_obj.expec_val(int(W5t2_idx_E), *W5t3_params_E))
+        print("Experimental W5 t3 min val based on experimental params:", W5_E_obj.expec_val(int(W5t3_idx_E), *W5t3_params_E))
 
         if do_W7s_W8s:
             # TODO: fix to reflect new groupings
