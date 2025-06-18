@@ -1,6 +1,6 @@
 """
 Authors: Lev G., Isabel G.
-Last updated: 6/16/2025
+Last updated: 6/18/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
@@ -9,6 +9,8 @@ sample_rho.py.
 
 To run this file, first change the figure title as desired on line 723, then run this file and fill
 in the user inputs when prompted in your command line.
+
+This file can be run on data files with the naming format "rho_(state_name-chi_trial).npy".
 """
 
 print("initializing...")
