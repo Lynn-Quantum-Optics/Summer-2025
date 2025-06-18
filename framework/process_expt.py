@@ -349,12 +349,6 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         #########################
         ## MINIMIZING WITNESSES
         #########################
-        
-        # Redirects print statements to an output file.
-        # NOTE: MUST REMOVE TO PRINT IN TERMINAL
-        import sys
-        original_stdout = sys.stdout
-        sys.stdout = open('chi0.001_min_output.txt', 'w')
 
         # calculate W and W' theory
         print("Minimizing witnesses for theoretical data...")
@@ -368,10 +362,6 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Minimizing witnesses for experimental data...")
         # NOTE: do not put in uncertainties here
         W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
-
-        # close output file
-        sys.stdout.close()
-        sys.stdout = original_stdout
 
         # check if we calculated W7s and W8s
         do_W7s_W8s = False
@@ -734,7 +724,7 @@ def make_plots_E0(dfname):
             # ax[1,i].set_ylabel('Value', fontsize=31)
             # ax[1,i].legend()
 
-    plt.suptitle("Min. Witness Values for $\cos(\\frac{\chi}{2}) |HD \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{3}} |VA \u27E9$", fontsize=20)
+    plt.suptitle("Min. Witness Values for $\cos(\\frac{\chi}{2}) |HR \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{6}} |VL \u27E9$", fontsize=20)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{STATE_ID}_trial{TRIAL}.pdf'))
     plt.show()
