@@ -368,7 +368,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         ## CALCULATING UNCERTAINTIES
         ##############################
 
-        # NOTE: i is indexed from one because it represents a witness superscript
+        # NOTE: i is indexed from one because it represents a witness subscript
         W_E_unc = []
         W3_obj = sw.W3(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
         for i in range(1, 7): # W3s

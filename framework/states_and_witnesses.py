@@ -319,11 +319,11 @@ class W3:
         Returns the Stokes parameters for one W3
 
         Parameters:
-        idx: the superscript of the W3 witness to get stokes for
+        idx: the subscript of the W3 witness to get stokes for
         theta: the minimization parameter
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         assert theta is not None, "ERROR: theta not given"
         ws = [self.W3_1, self.W3_2, self.W3_3, self.W3_4, self.W3_5, self.W3_6]
@@ -336,11 +336,11 @@ class W3:
         Returns the expectation value of one W3
 
         Parameters:
-        idx: the superscript of the W3 witness to get expectation value for
+        idx: the subscript of the W3 witness to get expectation value for
         theta: the minimization parameter
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         W_stokes = self.W_stokes(idx, theta)
         return 0.25 * np.dot(self.stokes, W_stokes)
@@ -699,11 +699,11 @@ class W5(W3):
         Returns the Stokes parameters for one W5
 
         Params:
-        idx: the superscript of the W5 witness to get stokes for
+        idx: the subscript of the W5 witness to get stokes for
         theta, alpha, beta: the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         assert theta is not None, "ERROR: theta not given"
         assert alpha is not None, "ERROR: alpha not given"
@@ -726,11 +726,11 @@ class W5(W3):
         Returns the expectation value of one W5
 
         Parameters:
-        idx: the superscript of the W5 witness to get expectation value for
+        idx: the subscript of the W5 witness to get expectation value for
         theta: the minimization parameter
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         W_stokes = self.W_stokes(idx, theta, alpha, beta)
         return 0.25 * np.dot(self.stokes, W_stokes)
@@ -1197,11 +1197,11 @@ class W8(W5):
         Returns the Stokes parameters for one W8
 
         Params:
-        idx: the superscript of the W8 witness to get stokes for
+        idx: the subscript of the W8 witness to get stokes for
         theta, alpha, beta, gamma: the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         assert theta is not None, "ERROR: theta not given"
         assert alpha is not None, "ERROR: alpha not given"
@@ -1228,11 +1228,11 @@ class W8(W5):
         Returns the expectation value of one W8
 
         Parameters:
-        idx: the superscript of the W8 witness to get expectation value for
+        idx: the subscript of the W8 witness to get expectation value for
         theta: the minimization parameter
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
         return 0.25 * np.dot(self.stokes, W_stokes)
@@ -2257,11 +2257,11 @@ class W7(W8):
         Returns the Stokes parameters for one W7
 
         Params:
-        idx: the superscript of the W7 witness to get stokes for
+        idx: the subscript of the W7 witness to get stokes for
         theta, alpha, beta, gamma: the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         assert theta is not None, "ERROR: theta not given"
         assert alpha is not None, "ERROR: alpha not given"
@@ -2299,11 +2299,11 @@ class W7(W8):
         Returns the expectation value of one W7
 
         Parameters:
-        idx: the superscript of the W7 witness to get expectation value for
+        idx: the subscript of the W7 witness to get expectation value for
         theta: the minimization parameter
 
         NOTE: indexes start from 1 so that they correspond with
-        the witness superscripts
+        the witness subscripts
         """
         W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
         return 0.25 * np.dot(self.stokes, W_stokes)
