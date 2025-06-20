@@ -300,7 +300,7 @@ class W3:
         if self.counts is not None:
             W3.check_counts(self)
 
-        phi5 = a*PHI_P + 1j*b*PSI_M
+        phi5 = a*PHI_P - 1j*b*PSI_M
         return op.partial_transpose(phi5 * op.adjoint(phi5))
         
     def W3_6(self, theta):
@@ -310,7 +310,7 @@ class W3:
         if self.counts is not None:
             W3.check_counts(self)
 
-        phi6 = a*PHI_M + 1j*b*PSI_P
+        phi6 = a*PHI_M - 1j*b*PSI_P
         return op.partial_transpose(phi6 * op.adjoint(phi6))
     
     
