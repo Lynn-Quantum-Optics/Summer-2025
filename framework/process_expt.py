@@ -1,6 +1,6 @@
 """
-Authors: Lev G., Isabel G.
-Last updated: 6/16/2025
+Authors: Lev G., Ria H., Isabel G.
+Last updated: 6/18/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
@@ -9,6 +9,8 @@ sample_rho.py.
 
 To run this file, first change the figure title as desired on line 723, then run this file and fill
 in the user inputs when prompted in your command line.
+
+This file can be run on data files with the naming format "rho_(state_name-chi_trial).npy".
 """
 
 print("initializing...")
@@ -35,12 +37,7 @@ import states_and_witnesses as sw
 import operations as op
 
 def get_rho_from_file(filename, verbose=True, angles=None):
-    '''Function to read in experimental density matrix from file. For trials > 14. N.b. up to trial 23,
-    angles were not saved (but recorded in lab_notebook markdown file). Also note that in trials 20
-    (E0 eta = 45), 21 (blueo of E0 (eta = 45, chi = 0, 18)), 22 (E0 eta = 60), and 23
-    (E0 eta = 60, chi = -90), there was a sign error in the phi phase in the Jones matrices,
-    so will recalculate the correct density matrix; ** the one saved in the file as the theoretical
-    density matrix is incorrect **
+    '''Function to read in experimental density matrix from file.
     --
     Parameters:
         filename : str, Name of file to read in
@@ -49,7 +46,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
         the data file.
     '''
     def split_filename():
-            ''' Splits up the file name and identifies the trial number, eta, and chi values'''
+            ''' Splits up the file name and identifies the trial number, and chi values'''
 
             # split filename
             split_filename = filename.split('(')
@@ -85,8 +82,9 @@ def adjust_rho(rho, expt_purity):
     ''' Adjusts theo density matrix to account for experimental impurity
         Multiplies unwanted experimental impurities (top right bottom right block) by expt purity
         to account for non-entangled particles in our system '''
-    for i in range(rho.shape[0]):
-        for j in range(rho.shape[1]):
+    adj_rho = rho.copy()
+    for i in range(adj_rho.shape[0]):
+        for j in range(adj_rho.shape[1]):
             if i < 3:
                 if j < 3:
                     pass
@@ -94,8 +92,8 @@ def adjust_rho(rho, expt_purity):
                 if j > 2:
                     pass
             else:
-                rho[i][j] = expt_purity * rho[i][j]
-    return rho
+                adj_rho[i][j] = expt_purity * adj_rho[i][j]
+    return adj_rho
 
 def get_fidelity(rho1, rho2):
     '''Compute fidelity of 2 density matrices'''
@@ -324,7 +322,6 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
     __
     Returns: df with:
         - trial number
-        - eta (if they exist)
         - chi (if they exist)
         - fidelity
         - purity
@@ -333,7 +330,6 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
     '''
     # initialize df
     df = pd.DataFrame()
-    eta = 45.0 # TODO: reformat for no eta with new rho methods file
 
     for i, file in tqdm(enumerate(filenames)):
         trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
@@ -349,12 +345,6 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         #########################
         ## MINIMIZING WITNESSES
         #########################
-        
-        # Redirects print statements to an output file.
-        # NOTE: MUST REMOVE TO PRINT IN TERMINAL
-        import sys
-        original_stdout = sys.stdout
-        sys.stdout = open('chi0.001_min_output.txt', 'w')
 
         # calculate W and W' theory
         print("Minimizing witnesses for theoretical data...")
@@ -369,10 +359,6 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # NOTE: do not put in uncertainties here
         W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
 
-        # close output file
-        sys.stdout.close()
-        sys.stdout = original_stdout
-
         # check if we calculated W7s and W8s
         do_W7s_W8s = False
         if len(W_E_vals) > 15:
@@ -382,7 +368,7 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         ## CALCULATING UNCERTAINTIES
         ##############################
 
-        # NOTE: i is indexed from one because it represents a witness superscript
+        # NOTE: i is indexed from one because it represents a witness subscript
         W_E_unc = []
         W3_obj = sw.W3(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
         for i in range(1, 7): # W3s
@@ -540,22 +526,22 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("\nFor theoretical data, the most minimized W5 t3 was W5_" + W5t3_idx_T)
         print("It had the following params:", W5t3_params_T)
         print("Theoretical W5 t3 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t3_idx_T), *W5t3_params_T))
-        print("Experimental W5 t3 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t2_idx_T), *W5t3_params_T))
+        print("Experimental W5 t3 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t3_idx_T), *W5t3_params_T))
         print("\nFor experimental data, the most minimized W5 t3 was W5_" + W5t3_idx_E)
         print("It had the following params:", W5t3_params_E)
         print("Theoretical W5 t3 min val based on experimental params:", W5_T_obj.expec_val(int(W5t3_idx_E), *W5t3_params_E))
-        print("Experimental W5 t3 min val based on experimental params:", W5_E_obj.expec_val(int(W5t2_idx_E), *W5t3_params_E))
+        print("Experimental W5 t3 min val based on experimental params:", W5_E_obj.expec_val(int(W5t3_idx_E), *W5t3_params_E))
 
         if do_W7s_W8s:
             # TODO: fix to reflect new groupings
             print("")
             # print("\nTheoretical W7 min:", data['W7']['min_T'])
-            # print("Adjusted theory W3 min:", data['W7']['min_AT'])
-            # print("Experimental W3 min:", data['W7']['min_E'], "+/-", data['W7']['unc_E'])
+            # print("Adjusted theory W7 min:", data['W7']['min_AT'])
+            # print("Experimental W7 min:", data['W7']['min_E'], "+/-", data['W7']['unc_E'])
 
-            # print("\nTheoretical W3 min:", data['W8']['min_T'])
-            # print("Adjusted theory W3 min:", data['W8']['min_AT'])
-            # print("Experimental W3 min:", data['W8']['min_E'], "+/-", data['W8']['unc_E'])
+            # print("\nTheoretical W8 min:", data['W8']['min_T'])
+            # print("Adjusted theory W8 min:", data['W8']['min_AT'])
+            # print("Experimental W8 min:", data['W8']['min_E'], "+/-", data['W8']['unc_E'])
 
         #######################
         ## BUILDING DATAFRAME
@@ -587,11 +573,10 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         new_df_row['QP'] = angles[1]
         new_df_row['B_HWP'] = angles[2]
         
-        if eta is not None and chi is not None:
+        if chi is not None:
             adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
-            new_df_row.insert(1, 'eta', eta)
-            new_df_row.insert(2, 'chi', chi)
-            new_df_row.insert(5, 'AT_fidelity', adj_fidelity)
+            new_df_row.insert(1, 'chi', chi)
+            new_df_row.insert(4, 'AT_fidelity', adj_fidelity)
 
         # Concatenate new row to the multifile dataframe
         df = pd.concat([df, new_df_row])
@@ -607,134 +592,67 @@ def make_plots_E0(dfname):
         dfname: str, name of df to read in
     '''
     print("plotting...")
-    id = dfname.split('.')[0].split('_')[-1] # extract identifier from dfname
-
     # read in df
     df = pd.read_csv(join(DATA_PATH, dfname))
-    eta_vals = df['eta'].unique()
+    fig, ax = plt.subplots(figsize = (8, 8))
+    chi = df['chi'].to_numpy()
 
-    # preset plot sizes
-    if len(eta_vals) == 1:
-        fig, ax = plt.subplots(figsize = (8, 8))
-        # get df for each eta
-        df_eta = df
-        purity_eta = df_eta['purity'].to_numpy()
-        fidelity_eta = df_eta['fidelity'].to_numpy()
-        chi_eta = df_eta['chi'].to_numpy()
-        adj_fidelity = df_eta['AT_fidelity'].to_numpy()
+    # TODO: Fix purity and fidelity plotting code commented below
+    # if plot_purity:
+    #     purity = df['purity'].to_numpy()
+    #     ax[1,0].scatter(chi, purity, label='Purity', color='gold')
 
-        # # do purity and fidelity plots
-        # ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
-        # ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
+    # if plot_fidelity:
+    #     fidelity = df['fidelity'].to_numpy()
+    #     adj_fidelity = df['AT_fidelity'].to_numpy()
+    #     ax[1,1].scatter(chi, fidelity, label='Fidelity', color='turquoise')
+    #     ax[1,2].plot(chi, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
 
-        # # plot adjusted theory purity
-        # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
+    # extract witness values
+    W3_min_T = df['W3_min_T'].to_numpy()
+    W3_min_AT = df['W3_min_AT'].to_numpy()
+    W3_min_E = df['W3_min_E'].to_numpy()
+    W3_unc = df['W3_unc_E'].to_numpy()
 
-        # extract witness values
-        W3_min_T = df_eta['W3_min_T'].to_numpy()
-        W3_min_AT = df_eta['W3_min_AT'].to_numpy()
-        W3_min_E = df_eta['W3_min_E'].to_numpy()
-        W3_unc = df_eta['W3_unc_E'].to_numpy()
+    W5_min_T = df[['W5_t1_min_T', 'W5_t2_min_T', 'W5_t3_min_T']].min(axis=1).to_numpy()
+    W5_min_AT = df[['W5_t1_min_AT', 'W5_t2_min_AT', 'W5_t3_min_AT']].min(axis=1).to_numpy()
+    W5_min_E = df[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].min(axis=1).to_numpy()
+    W5_name_E = df[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].idxmin(axis=1)
+    # retrieve the correct uncertainty depending on which W5 triplet gave the best minimum
+    W5_unc = np.where(W5_name_E == 'W5_t1_min_E', df['W5_t1_unc_E'], np.where(W5_name_E == 'W5_t2_min_E', df['W5_t2_unc_E'], df['W5_t3_unc_E']))
 
-        W5_min_T = df_eta[['W5_t1_min_T', 'W5_t2_min_T', 'W5_t3_min_T']].min(axis=1).to_numpy()
-        W5_min_AT = df_eta[['W5_t1_min_AT', 'W5_t2_min_AT', 'W5_t3_min_AT']].min(axis=1).to_numpy()
-        W5_min_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].min(axis=1).to_numpy()
-        W5_best_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].idxmin(axis=1)
-        W5_unc = np.where(W5_best_E == 'W5_t1_min_E', df_eta['W5_t1_unc_E'], np.where(W5_best_E == 'W5_t2_min_E', df_eta['W5_t2_unc_E'], df_eta['W5_t3_unc_E']))
+    # plot curves for T and AT
+    def sinsq(x, a, b, c, d):
+        return a*np.sin(b*np.deg2rad(x) + c)**2 + d
 
-        # plot curves for T and AT
-        def sinsq(x, a, b, c, d):
-            return a*np.sin(b*np.deg2rad(x) + c)**2 + d
+    """
+    NOTE: popt is a list of optimal values for chi so that the sum of the
+            squared residuals of f(xdata, *popt) - ydata is minimized, while pcov is a
+            matrix representing the estimated approximate covariance of popt
+    """
+    popt_W3_T, pcov_W3_T = curve_fit(sinsq, chi, W3_min_T, maxfev = 10000)
+    popt_W3_AT, pcov_W3_AT = curve_fit(sinsq, chi, W3_min_AT, maxfev = 10000)
+    #print('popt_W are:', popt_W_AT)
+    popt_W5_T, pcov_W5_T = curve_fit(sinsq, chi, W5_min_T, maxfev = 10000)
+    popt_W5_AT, pcov_W5_AT = curve_fit(sinsq, chi, W5_min_AT, maxfev = 10000)
+    
+    chi_ls = np.linspace(min(chi), max(chi), 1000)
 
-        """
-        NOTE: popt is a list of optimal values for eta and chi so that the sum of the
-              squared residuals of f(xdata, *popt) - ydata is minimized, while pcov is a
-              matrix representing the estimated approximate covariance of popt
-        """
-        popt_W3_T_eta, pcov_W3_T_eta = curve_fit(sinsq, chi_eta, W3_min_T, maxfev = 10000)
-        popt_W3_AT_eta, pcov_W3_AT_eta = curve_fit(sinsq, chi_eta, W3_min_AT, maxfev = 10000)
-        #print('popt_W are:', popt_W_AT_eta)
-        popt_W5_T_eta, pcov_W5_T_eta = curve_fit(sinsq, chi_eta, W5_min_T, maxfev = 10000)
-        popt_W5_AT_eta, pcov_W5_AT_eta = curve_fit(sinsq, chi_eta, W5_min_AT, maxfev = 10000)
-        
-        chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
+    ax.plot(chi_ls, sinsq(chi_ls, *popt_W3_T), label='$W_T^3$', color='navy')
+    ax.plot(chi_ls, sinsq(chi_ls, *popt_W3_AT), label='$W_{AT}^3$', linestyle='dashed', color='blue')
+    ax.errorbar(chi, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue', markersize=10)
 
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_T^3$', color='navy')
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}^3$', linestyle='dashed', color='blue')
-        ax.errorbar(chi_eta, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue', markersize=10)
+    ax.plot(chi_ls, sinsq(chi_ls, *popt_W5_T), label="$W_T^5$", color='crimson')
+    ax.plot(chi_ls, sinsq(chi_ls, *popt_W5_AT), label="$W_{AT}^5$", linestyle='dashed', color='red')
+    ax.errorbar(chi, W5_min_E, yerr=W5_unc, fmt='o', color='salmon', markersize=10)
 
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_T^5$", color='crimson')
-        ax.plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}^5$", linestyle='dashed', color='red')
-        ax.errorbar(chi_eta, W5_min_E, yerr=W5_unc, fmt='o', color='salmon', markersize=10)
-        #ax.set_title(f'$\eta = 45\degree$', fontsize=18)
-        ax.set_ylabel('Witness value', fontsize=20)
-        ax.tick_params(axis='both', which='major', labelsize=20)
-        ax.legend(ncol=2, fontsize=20)
-        ax.set_xlabel('$\chi$ (deg)', fontsize=20)
-        ax.axhline(y=0, color='black')
-        # ax[1,i].set_ylabel('Value', fontsize=31)
-        # ax[1,i].legend()
-    else:
-        if len(eta_vals) == 2:
-            fig, ax = plt.subplots(1, 2, figsize=(20, 10))
-        elif len(eta_vals) == 3:
-            fig, ax = plt.subplots(2, 3, figsize=(25, 10), sharex=True)
-        
-        for i, eta in enumerate(eta_vals):
-            # get df for each eta
-            df_eta = df[df['eta'] == eta]
-            purity_eta = df_eta['purity'].to_numpy()
-            fidelity_eta = df_eta['fidelity'].to_numpy()
-            chi_eta = df_eta['chi'].to_numpy()
-            adj_fidelity = df_eta['AT_fidelity'].to_numpy()
+    ax.set_ylabel('Witness value', fontsize=20)
+    ax.tick_params(axis='both', which='major', labelsize=20)
+    ax.legend(ncol=2, fontsize=20)
+    ax.set_xlabel('$\chi$ (deg)', fontsize=20)
+    ax.axhline(y=0, color='black')
 
-            # # do purity and fidelity plots
-            # ax[1,i].scatter(chi_eta, purity_eta, label='Purity', color='gold')
-            # ax[1,i].scatter(chi_eta, fidelity_eta, label='Fidelity', color='turquoise')
-
-            # # plot adjusted theory purity
-            # ax[1,i].plot(chi_eta, adj_fidelity, color='turquoise', linestyle='dashed', label='AT Fidelity')
-
-            # extract witness values
-            W3_min_T = df_eta['W3_min_T'].to_numpy()
-            W3_min_AT = df_eta['W3_min_AT'].to_numpy()
-            W3_min_E = df_eta['W3_min_E'].to_numpy()
-            W3_unc = df_eta['W3_unc_E'].to_numpy()
-
-            W5_min_T = df_eta[['W5_t1_min_T', 'W5_t2_min_T', 'W5_t3_min_T']].min(axis=1).to_numpy()
-            W5_min_AT = df_eta[['W5_t1_min_AT', 'W5_t2_min_AT', 'W5_t3_min_AT']].min(axis=1).to_numpy()
-            W5_min_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].min(axis=1).to_numpy()
-            W5_best_E = df_eta[['W5_t1_min_E', 'W5_t2_min_E', 'W5_t3_min_E']].idxmin(axis=1)
-            W5_unc = np.where(W5_best_E == 'W5_t1_min_E', df_eta['W5_t1_unc_E'], np.where(W5_best_E == 'W5_t2_min_E', df_eta['W5_t2_unc_E'], df_eta['W5_t3_unc_E']))
-
-            # plot curves for T and AT
-            def sinsq(x, a, b, c, d):
-                return a*np.sin(b*np.deg2rad(x) + c)**2 + d
-            popt_W3_T_eta, pcov_W3_T_eta = curve_fit(sinsq, chi_eta, W3_min_T)
-            popt_W3_AT_eta, pcov_W3_AT_eta = curve_fit(sinsq, chi_eta, W3_min_AT)
-
-            popt_W5_T_eta, pcov_W5_T_eta = curve_fit(sinsq, chi_eta, W5_min_T)
-            popt_W5_AT_eta, pcov_W5_AT_eta = curve_fit(sinsq, chi_eta, W5_min_AT)
-
-            chi_eta_ls = np.linspace(min(chi_eta), max(chi_eta), 1000)
-
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_T_eta), label='$W_T^3$', color='navy')
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W3_AT_eta), label='$W_{AT}^3$', linestyle='dashed', color='blue')
-            ax[i].errorbar(chi_eta, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue')
-
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_T_eta), label="$W_T^5$", color='crimson')
-            ax[i].plot(chi_eta_ls, sinsq(chi_eta_ls, *popt_W5_AT_eta), label="$W_{AT}^5$", linestyle='dashed', color='red')
-            ax[i].errorbar(chi_eta, W5_min_E, yerr=W5_unc, fmt='o', color='salmon')
-
-            ax[i].set_title('$\eta = 30\degree$', fontsize=33)
-            ax[i].set_ylabel('Witness value', fontsize=31)
-            ax[i].tick_params(axis='both', which='major', labelsize=25)
-            ax[i].legend(ncol=2, fontsize=25)
-            ax[i].set_xlabel('$\chi$', fontsize=31)
-            # ax[1,i].set_ylabel('Value', fontsize=31)
-            # ax[1,i].legend()
-
-    plt.suptitle("Min. Witness Values for $\cos(\\frac{\chi}{2}) |HD \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{3}} |VA \u27E9$", fontsize=20)
+    plt.suptitle("Min. Witness Values for $\cos(\\frac{\chi}{2}) |HR \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{6}} |VL \u27E9$", fontsize=20)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{STATE_ID}_trial{TRIAL}.pdf'))
     plt.show()
@@ -769,7 +687,7 @@ def create_noise(rho, power):
 
 def get_theo_rho(state, chi):
     '''
-    Calculates the density matrix (rho) for a given set of parameters (eta, chi) for Stuart's states
+    Calculates the density matrix (rho) for a given set of parameters (chi) for Stuart's states
     
     Parameters:
         state (string): The name of the state we are analyzing
@@ -785,11 +703,6 @@ def get_theo_rho(state, chi):
     L = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1j)])
     D = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1)])
     A = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1)])
-    
-    PHI_PLUS = (np.kron(H,H) + np.kron(V,V))/np.sqrt(2)
-    PHI_MINUS = (np.kron(H,H) - np.kron(V,V))/np.sqrt(2)
-    PSI_PLUS = (np.kron(H,V) + np.kron(V,H))/np.sqrt(2)
-    PSI_MINUS = (np.kron(H,V) - np.kron(V,H))/np.sqrt(2)
     
     ## The following state(s) are an attempt to find new positive W negative W prime states.
     if state == 'HR_VL':
