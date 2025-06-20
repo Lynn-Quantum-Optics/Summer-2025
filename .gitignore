@@ -2,3 +2,4 @@
 *.venv
 *Scripts
 *__pycache__
+ria_temp
