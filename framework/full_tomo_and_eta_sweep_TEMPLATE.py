@@ -1,9 +1,10 @@
 from lab_framework import Manager
 import numpy as np
-import scipy.optimize as opt
+import scipy.optimize as opt # type: ignore
 from full_tomo_updated_richard import get_rho
 from analysis_old import *
 import pandas as pd
+import scipy.linalg as la
 
 def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
