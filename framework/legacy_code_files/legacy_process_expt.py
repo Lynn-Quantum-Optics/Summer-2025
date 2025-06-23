@@ -200,14 +200,14 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp_t1_T = W_T_ls[1]
         Wp_t2_T = W_T_ls[2]
         Wp_t3_T = W_T_ls[3]
-        W_name_T = W_T_ls[4]
-        Wp1_name_T = W_T_ls[5]
-        Wp2_name_T = W_T_ls[6]
-        Wp3_name_T = W_T_ls[7]
-        W_param_T = W_T_ls[8]
-        Wp1_param_T = W_T_ls[9]
-        Wp2_param_T = W_T_ls[10]
-        Wp3_param_T = W_T_ls[11]
+        # W_name_T = W_T_ls[4]
+        # Wp1_name_T = W_T_ls[5]
+        # Wp2_name_T = W_T_ls[6]
+        # Wp3_name_T = W_T_ls[7]
+        # W_param_T = W_T_ls[8]
+        # Wp1_param_T = W_T_ls[9]
+        # Wp2_param_T = W_T_ls[10]
+        # Wp3_param_T = W_T_ls[11]
         #print('The minimized first triplet W prime is:', Wp1_name_T)
         # ---- #
         # not returning params for adjusted theory at the moment
@@ -215,10 +215,10 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp_t1_AT = W_AT_ls[1]
         Wp_t2_AT = W_AT_ls[2]
         Wp_t3_AT = W_AT_ls[3]
-        W_name_AT = W_AT_ls[4]
-        Wp1_name_AT = W_AT_ls[5]
-        Wp2_name_AT = W_AT_ls[6]
-        Wp3_name_AT = W_AT_ls[7]
+        # W_name_AT = W_AT_ls[4]
+        # Wp1_name_AT = W_AT_ls[5]
+        # Wp2_name_AT = W_AT_ls[6]
+        # Wp3_name_AT = W_AT_ls[7]
         
         # ---- #
         # using propogated uncertainty
@@ -234,14 +234,14 @@ def analyze_rhos(filenames, rho_actuals, settings=None, id='id'):
         Wp_t2_unc = unp.std_devs(W_expt_ls[2])
         Wp_t3_expt = unp.nominal_values(W_expt_ls[3])
         Wp_t3_unc = unp.std_devs(W_expt_ls[3])
-        W_name_expt = W_expt_ls[4]
-        Wp1_name_expt = W_expt_ls[5]
-        Wp2_name_expt = W_expt_ls[6]
-        Wp3_name_expt = W_expt_ls[7]
-        W_param_expt = W_expt_ls[8]
-        Wp1_param_expt = W_expt_ls[9]
-        Wp2_param_expt = W_expt_ls[10]
-        Wp3_param_expt = W_expt_ls[11]
+        # W_name_expt = W_expt_ls[4]
+        # Wp1_name_expt = W_expt_ls[5]
+        # Wp2_name_expt = W_expt_ls[6]
+        # Wp3_name_expt = W_expt_ls[7]
+        # W_param_expt = W_expt_ls[8]
+        # Wp1_param_expt = W_expt_ls[9]
+        # Wp2_param_expt = W_expt_ls[10]
+        # Wp3_param_expt = W_expt_ls[11]
     
         #print('THE CURRENT POINT IS POINT:', i)
         #print('With W/W primes of:', W_name_T, W_min_T, W_param_T, Wp1_name_T, Wp_t1_T, Wp1_param_T, Wp2_name_T, Wp_t2_T, Wp2_param_T, Wp3_name_T, Wp_t3_T, Wp3_param_T)

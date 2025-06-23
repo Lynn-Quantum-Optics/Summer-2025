@@ -78,21 +78,35 @@ def get_rho_from_file(filename, verbose=True, angles=None):
 
     return trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc
 
+def gen_mixed_state(state_list, state_prob, chi):
+    '''
+    Generates a density matrix for a given mixed state
+    
+    Parameters:
+        state_list: list of names of states that compose the mixed state
+        state_prob: list of respective probabilities of each state
+        chi: chi value
+    
+    Returns:
+        rho: the density matrix of the mixed state
+    '''
+    
+    # get individual rho's per state in state_list, taking probability into account
+    individual_rhos = []
+    for i, state in enumerate(state_list):
+        individual_rhos.append(state_prob[i] * get_theo_rho(state, chi))
+    # sum all matrices in individual rhos
+    rho = np.sum(individual_rhos, axis = 0)
+    
+    return rho
+
 def adjust_rho(rho, expt_purity):
     ''' Adjusts theo density matrix to account for experimental impurity
-        Multiplies unwanted experimental impurities (top right bottom right block) by expt purity
-        to account for non-entangled particles in our system '''
+        Multiplies unwanted experimental impurities (top right and bottom left blocks) by
+        expt purity to account for non-entangled particles in our system '''
     adj_rho = rho.copy()
-    for i in range(adj_rho.shape[0]):
-        for j in range(adj_rho.shape[1]):
-            if i < 3:
-                if j < 3:
-                    pass
-            if i > 2:
-                if j > 2:
-                    pass
-            else:
-                adj_rho[i][j] = expt_purity * adj_rho[i][j]
+    adj_rho[:2, 2:] = adj_rho[:2, 2:] * expt_purity
+    adj_rho[2:, :2] = adj_rho[2:, :2] * expt_purity
     return adj_rho
 
 def get_fidelity(rho1, rho2):
@@ -334,8 +348,10 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
     for i, file in tqdm(enumerate(filenames)):
         trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
         print('Purity is:', purity)
-        print('Fidelity is:', fidelity)
         rho_actual = rho_actuals[i]
+        #TODO: change back to fidelity from file after getting a new tomography
+        fidelity = get_fidelity(rho_actual, rho)
+        print('Fidelity is:', fidelity)
         
         print('Theoretical rho is:')
         print(np.round(rho_actual, 4))
@@ -652,7 +668,7 @@ def make_plots_E0(dfname):
     ax.set_xlabel('$\chi$ (deg)', fontsize=20)
     ax.axhline(y=0, color='black')
 
-    plt.suptitle("Min. Witness Values for $\cos(\\frac{\chi}{2}) |HR \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{6}} |VL \u27E9$", fontsize=20)
+    plt.suptitle("Entangled State Witnessed by 2nd W5 Triplet (2025)", fontsize=20)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{STATE_ID}_trial{TRIAL}.pdf'))
     plt.show()
@@ -767,11 +783,6 @@ def get_theo_rho(state, chi):
 
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
-
-    if state =='HAVD_mix':
-        psi_3 = np.cos(chi/2) * np.kron(H, A) - 1j * np.sin(chi/2) * np.kron(V, D)
-        psi_4 = np.cos(chi/2) * np.kron(H, R) - 1j * np.sin(chi/2) * np.kron(V, L)
-        phi = 0.65 * np.outer(psi_3, psi_3) + 0.35 * np.outer(psi_4, psi_4)
     
     # create rho and return it
     rho = phi @ phi.conj().T
@@ -780,23 +791,25 @@ def get_theo_rho(state, chi):
 if __name__ == '__main__':
     # set path & other user input variables
     current_path = dirname(abspath(__file__))
-    DATA_PATH = input('Input the path to the lowest-level directory that your data file is in: ')
+    DATA_PATH = input("Input the path to the lowest-level directory that your data file is in: ")
     TRIAL = int(input("Trial number: "))
-    STATE_ID = input("State name: ")
+    STATE_ID = input("State name (must contain 'mix' if analyzing a mixed state): ")
+
+    if "mix" in STATE_ID:
+        mixed_states = input("Input the names of the individual states that compose your mixed state, separated by spaces: ")
+        names = mixed_states.split(" ")
+        probabilities = input("Input the probabilities of each respective state, separated by spaces: ")
+        probs = list(map(float, probabilities.split(" ")))
 
     chis_range = input("Are you analyzing the full range of chi values? [y/n]: ")
     if chis_range.lower() == "y":
         chis = np.linspace(0.001, np.pi/2, 6)
     else:
-        chis_var = input("Would you like to test variations in the minima using the same chi multiple times? [y/n]: ")
-        if chis_var.lower() == "y":
-            chis = [np.pi/2]*10
+        chis_str = input("Which chi value do you want to test (must be in radians; e.g. 'np.pi/2')?\nType nothing and hit ENTER to assign a default value of pi/2 radians: ")
+        if chis_str == "":
+            chis = [np.pi/2]
         else:
-            chis_str = input("Which chi value do you want to test (must be in radians; e.g. 'np.pi/2')?\nType nothing and hit ENTER to assign a default value of pi/2 radians: ")
-            if chis_str == "":
-                chis = [np.pi/2]
-            else:
-                chis = [eval(chis_str)]
+            chis = [eval(chis_str)]
 
     rho_actuals = []
     filenames = []
@@ -804,7 +817,10 @@ if __name__ == '__main__':
 
     # Obtain the density matrix for each state
     for chi in chis:
-        rho_actuals.append(get_theo_rho(STATE_ID, chi))
+        if "mix" in STATE_ID:
+            rho_actuals.append(gen_mixed_state(names, probs, chi))
+        else:
+            rho_actuals.append(get_theo_rho(STATE_ID, chi))
         filenames.append(f"rho_({STATE_ID}-{np.rad2deg(chi)}-{TRIAL}).npy")
 
     # analyze rho files

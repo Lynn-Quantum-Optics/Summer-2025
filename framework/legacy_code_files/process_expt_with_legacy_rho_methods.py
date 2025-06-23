@@ -19,7 +19,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'ria_hd_negpi_3_va'
+DATA_PATH = 'hrivl7-19_havd_mix'
 
 def get_rho_from_file(filename, verbose=True, angles=None):
     '''Function to read in experimental density matrix from file. For trials > 14. N.b. up to trial 23, angles were not saved (but recorded in lab_notebook markdown file). Also note that in trials 20 (E0 eta = 45), 21 (blueo of E0 (eta = 45, chi = 0, 18)), 22 (E0 eta = 60), and 23 (E0 eta = 60, chi = -90), there was a sign error in the phi phase in the Jones matrices, so will recalculate the correct density matrix; ** the one saved in the file as the theoretical density matrix is incorrect **
@@ -421,6 +421,11 @@ def get_theo_rho(state, chi):
 
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
+
+    if state =='HAVD_mix':
+        psi_3 = np.cos(chi/2) * np.kron(H, A) + np.exp(-2j*np.pi/5) * np.sin(chi/2) * np.kron(V, D)
+        psi_4 = np.cos(chi/2) * np.kron(H, R) - 1j * np.sin(chi/2) * np.kron(V, L)
+        phi = 0.65 * np.outer(psi_4, psi_4) + 0.35 * np.outer(psi_3, psi_3)
     
     # create rho and return it
     rho = phi @ phi.conj().T
@@ -430,8 +435,8 @@ if __name__ == '__main__':
     
     #Update here
     TRIAL = 1
-    name = 'hd_negpi_3_va'
-    id = 'ria_hd_negpi_3_va'
+    name = 'HAVD_mix'
+    id = 'HAVD_mix'
     chis = np.linspace(0.001, np.pi/2, 6)
     #chis = [np.pi/2]
 
