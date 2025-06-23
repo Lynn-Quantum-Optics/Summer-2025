@@ -1,17 +1,12 @@
 '''
-AuthorL Lev Gruber
-Last Update: 5/17/2024
+Author: Ria Haapala
+Last Update: 6/23/2025
 
-This file uses code from Oscar's process_expt_richard.py in Summer 2023 to brute force
-calculate eta and chi values (for the state cos(eta)PHI+ + sin(eta)e^i*chi PHI-) in which W is positive
-and W' is negative. 
+This file is has been compiled using Lev Gruber's testing witnesses file for mixed states.
 
-It does so by:
-1. Creating theoretical density matrices at a variety of eta values and 1-2 chi values
-2. Computing both W and W' witnesses for each density matrix
-3. Pushing values with +W and -W' into one df, and values with +W, +W' into another. 
-
-In the future, I hope to add functionality to compute V witnesses for states for which W and W' are positive.
+For a given state of the form cos(chi/2)*|alpha>|beta> + e^i*gamma sin(chi/2)|alpha_perp>|beta_perp>, 
+this file will calculate all W_3 and W_5 witness values over the specified range using the legacy
+rho methods.
 '''
 
 # Imports
@@ -36,7 +31,7 @@ def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
 
 
-def get_theo_rho(state, chi):
+def get_theo_rho(state, chi, mod):
     '''
     Calculates the density matrix (rho) for a given set of paramters (eta, chi) for Stuart's states
     
@@ -59,9 +54,15 @@ def get_theo_rho(state, chi):
     if state == 'hr_negpi_6_vl':
         phi = np.cos(chi/2) * np.kron(H, R) + np.exp(-1j * np.pi/6) * np.sin(chi/2) * np.kron(V, L)
     
+    if state == 'hr_negpi_6_vl_mod':
+        phi = np.cos(chi/2) * np.kron(H, R) + np.exp(-1j * np.pi/mod) * np.sin(chi/2) * np.kron(V, L)
+
     if state == 'hd_negpi_3_va':
         phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, A)
-    
+
+    if state == 'hd_negpi_3_va_mod':
+        phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/mod) * np.sin(chi/2) * np.kron(V, A)
+
     # create rho and return it
     rho = phi @ phi.conj().T
     return rho
@@ -192,13 +193,15 @@ if __name__ == '__main__':
     etas = [np.pi/4] #np.pi/12, np.pi/6, np.pi/4 , np.pi/3
     chis = np.linspace(0.001, np.pi/2, 6)
     plot = False
-    state = 'hr_negpi_6_vl'
+    state = 'hr_negpi_6_vl_mod'
+
+    mod = 5.4
 
     ####### Witness each rho and save it
     
     ### Save witness values to above lists of lists
     for chi in chis:
-        rho = get_theo_rho(state, chi)
+        rho = get_theo_rho(state, chi, mod)
         # find the minimum witness expectation value of the 3 w primes and of the W.
         # Add in to get which W was minimum: W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param,  verbose = True
         WM, WP1, WP2, WP3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_3s, W_5_t1s, W_5_t2s, W_5_t3s = analyze_rho(rho, verbose=True) 

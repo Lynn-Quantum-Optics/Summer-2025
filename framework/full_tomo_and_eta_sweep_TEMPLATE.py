@@ -1,6 +1,6 @@
 from lab_framework import Manager
 import numpy as np
-import scipy.optimize as opt
+import scipy.optimize as opt # type: ignore
 from full_tomo_updated_richard import get_rho
 from analysis_old import *
 import pandas as pd
@@ -15,10 +15,10 @@ def get_theo_rho(chi):
     V = ket([0,1])
     D = ket([np.sqrt(0.5), np.sqrt(0.5)])
     A = ket([np.sqrt(0.5), -np.sqrt(0.5)])
-    R = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
-    L = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
+    R = ket([np.sqrt(0.5), 1j * np.sqrt(0.5)])
+    L = ket([np.sqrt(0.5), -1j * np.sqrt(0.5)])
 
-    phi = (np.cos(chi/2) * np.kron(H, R) + np.exp(-1j*np.pi/6) * np.sin(chi/2) * np.kron(V, L))/np.sqrt(2) #TODO: change to current state
+    phi = (np.cos(chi/2) * np.kron(H, R) + np.exp(-1j*np.pi/6) * np.sin(chi/2) * np.kron(V, L)) #TODO: change to current state
 
     rho = phi @ phi.conj().T
 
@@ -115,6 +115,35 @@ if __name__ == '__main__':
 
     args1, unc1 = fit('sin2_sq', data1.C_UV_HWP, data1.C4, data1.C4_SEM)
     args2, unc2 = fit('sin2_sq', data2.C_UV_HWP, data2.C4, data2.C4_SEM)
+
+    # print out the UVHWP angles so you can debug
+    """""In [11]: run plot_UVHWP_sweep.py
+        [-135.91511309]
+        [-133.44428684]
+        [-128.4243649]
+        [-124.01571808]
+        [-119.61847333]
+        [-115.13290644]
+
+        In [12]: run plot_UVHWP_sweep.py
+        [-135.76368496]
+        [-138.22537183]
+        [-143.25992867]
+        [-123.84947705]
+        [-119.4585796]
+        [-114.98808438]"""
+    
+    for chi in chi_vals:
+        # Calculate the UVHWP angle we want for a given CHI value
+        desired_ratio = (np.cos(chi/2) / np.sin(chi/2))**2
+        def min_me(x_:np.ndarray, args1_:tuple, args2_:tuple):
+            ''' Function want to minimize'''
+            return (sin2_sq(x_, *args1_) / sin2_sq(x_, *args2_) - desired_ratio)**2
+        x_min, x_max = np.min(data1.C_UV_HWP), np.max(data1.C_UV_HWP)
+        UVHWP_angle = opt.brute(min_me, args=(args1, args2), ranges=((x_min, x_max),))
+
+        # might need to retune this if there are multiple roots. I'm only assuming one root
+        print(UVHWP_angle)
 
     for chi in chi_vals:
         # Calculate the UVHWP angle we want for a given CHI value
