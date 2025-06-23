@@ -668,9 +668,9 @@ def make_plots_E0(dfname):
     ax.set_xlabel('$\chi$ (deg)', fontsize=20)
     ax.axhline(y=0, color='black')
 
-    plt.suptitle("Entangled State Witnessed by 2nd W5 Triplet (2025)", fontsize=20)
+    plt.suptitle("Entangled State Witnessed by 3rd W5 Triplet (2025)", fontsize=20)
     plt.tight_layout()
-    plt.savefig(join(DATA_PATH, f'{STATE_ID}_trial{TRIAL}.pdf'))
+    plt.savefig(join(DATA_PATH, f'{STATE_ID}_trial{TRIAL}_2025_analysis.pdf'))
     plt.show()
 
 def ket(data):
