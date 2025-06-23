@@ -17,7 +17,7 @@ from rho_methods import *
 
 # set path
 current_path = dirname(abspath(__file__))
-DATA_PATH = 'hrivl7-19_havd_mix'
+DATA_PATH = 'mixed_phi_psi_45'
 
 def get_rho_from_file_depricated(filename, rho_actual):
     '''Function to read in experimental density matrix from file. Deprecated since newer experiments will save the target density matrix in the file; for trials <= 14'''
@@ -608,7 +608,7 @@ if __name__ == '__main__':
     rho_actuals = []
     # get file names for data produced from mix_expt_data
     for i, state_n in enumerate(states_names):
-        filenames.append(f"rho_('E0', {state_n})_3.npy") 
+        filenames.append(f"rho_('E0', {state_n})_1.npy") 
         settings.append([state_n[0],state_n[1]])
 
      # Obtain the density matrix for each state
@@ -618,7 +618,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'hhivv_hvivh_mix'
+    id = 'mixed_phi_psi_45'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 
