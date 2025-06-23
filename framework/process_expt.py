@@ -783,6 +783,12 @@ def get_theo_rho(state, chi):
 
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
+
+    if state == 'cosHH_minusisinVV':
+        phi = np.cos(chi/2) * np.kron(H, H) - 1j * np.sin(chi/2) * np.kron(V, V)
+
+    if state == 'cosHV_minusisinVH':
+        phi = np.cos(chi/2) * np.kron(H, V) - 1j * np.sin(chi/2) * np.kron(V, H)
     
     # create rho and return it
     rho = phi @ phi.conj().T

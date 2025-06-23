@@ -540,14 +540,6 @@ def get_theo_rho(state, eta, chi):
     
     if state == 'HA_iVD':
         phi = (1 + np.exp(1j*chi))/2 * np.kron(H,A) + 1j*(1 - np.exp(1j*chi))/2 * np.kron(V,D)
-    
-    if state == 'testing-hdiva-73':
-        phi = np.cos(chi/2) * np.kron(H,D) + np.exp(-1j* np.pi/3)*np.sin(chi/2) * np.kron(V, A)
-        rho_main = (phi @ phi.conj().T)
-        rho_hd = (np.cos(chi/2))**2 * (np.kron(H,D) @ np.kron(H,D).conj().T)
-        rho_va = (np.sin(chi/2))**2 * (np.kron(V,A) @ np.kron(V,A).conj().T)
-        rho_return = 0.95 * rho_main + 0.05 * rho_hd + 0.05 * rho_va
-        return rho_return
         
     if state == 'cosHL_sinVR':
         phi = np.cos(chi/2) * np.kron(H, L) + np.sin(chi/2) * np.kron(V,R)    
@@ -581,8 +573,16 @@ def get_theo_rho(state, eta, chi):
     
     if state == 'testing_hdiva_phase':
         phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, A)
+
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
+
+    if state == 'cosHH_minusisinVV':
+        phi = np.cos(chi/2) * np.kron(H, H) - 1j * np.sin(chi/2) * np.kron(V, V)
+
+    if state == 'cosHV_minusisinVH':
+        phi = np.cos(chi/2) * np.kron(H, V) - 1j * np.sin(chi/2) * np.kron(V, H)
+
     # create rho and return it
     rho = phi @ phi.conj().T
     return rho
@@ -595,7 +595,7 @@ if __name__ == '__main__':
     #chis = [np.pi/2]
     states_names = []
     states = []
-    names = ['cosHR_minusisinVL', 'cosHA_minusisinVD'] #'cosHA_minusisinVD', 
+    names = ['cosHH_minusisinVV', 'cosHV_minusisinVH'] #'cosHA_minusisinVD', 
     probs = [0.65, 0.35]
     
     for eta in etas:
@@ -618,7 +618,7 @@ if __name__ == '__main__':
         rho_actuals.append(gen_mixed_state(names, probs, rad_angles))
 
     # analyze rho files
-    id = 'hrivl_mix_HAVD_trial6_7-19_test'
+    id = 'hhivv_hvivh_mix'
     analyze_rhos(filenames, rho_actuals, id=id)
     make_plots_E0(f'analysis_{id}.csv')
 
