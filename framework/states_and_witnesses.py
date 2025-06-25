@@ -319,8 +319,8 @@ class W3:
         Returns the Stokes parameters for one W3
 
         Parameters:
-        idx: the subscript of the W3 witness to get stokes for
-        theta: the minimization parameter
+            idx: the subscript of the W3 witness to get stokes for
+            theta: the minimization parameter
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
@@ -336,8 +336,8 @@ class W3:
         Returns the expectation value of one W3
 
         Parameters:
-        idx: the subscript of the W3 witness to get expectation value for
-        theta: the minimization parameter
+            idx: the subscript of the W3 witness to get expectation value for
+            theta: the minimization parameter
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
@@ -694,45 +694,44 @@ class W5(W3):
         rotation = np.kron(R_y(alpha), R_y(beta))
         return op.rotate_m(w1, rotation)
     
-    def W_stokes(self, idx, theta, alpha, beta):
+    def W_stokes(self, idx, *params):
         """
         Returns the Stokes parameters for one W5
 
         Params:
-        idx: the subscript of the W5 witness to get stokes for
-        theta, alpha, beta: the minimization parameters
+            idx: the subscript of the W5 witness to get stokes for
+            params (theta, alpha, beta): the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
         """
-        assert theta is not None, "ERROR: theta not given"
-        assert alpha is not None, "ERROR: alpha not given"
-        assert beta is not None, "ERROR: beta not given"
 
         w5s = [self.W5_1, self.W5_2, self.W5_3, 
                 self.W5_4, self.W5_5, self.W5_6,
                 self.W5_7, self.W5_8, self.W5_9]
         
         # witnesses 3, 6, and 9 need beta (NOTE: idx is one-indexed)
+        num_params = len(params)
         if idx % 3 == 0:
-            stokes = self.stokes_from_mtx(w5s[idx-1](theta, alpha, beta))
+            assert num_params == 3, f"ERROR: {num_params} params given, expected 3"
         else:
-            stokes = self.stokes_from_mtx(w5s[idx-1](theta, alpha))
-
+            assert num_params == 2, f"ERROR: {num_params} params given, expected 2"
+        
+        stokes = self.stokes_from_mtx(w5s[idx-1](*params))
         return stokes
     
-    def expec_val(self, idx, theta, alpha, beta):
+    def expec_val(self, idx, *params):
         """
         Returns the expectation value of one W5
 
         Parameters:
         idx: the subscript of the W5 witness to get expectation value for
-        theta: the minimization parameter
+        params (theta, alpha, beta): the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
         """
-        W_stokes = self.W_stokes(idx, theta, alpha, beta)
+        W_stokes = self.W_stokes(idx, *params)
         return 0.25 * np.dot(self.stokes, W_stokes)
     
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None):
@@ -1192,21 +1191,17 @@ class W8(W5):
         return op.rotate_m(w5_3, rotation)
     
 
-    def W_stokes(self, idx, theta, alpha, beta, gamma):
+    def W_stokes(self, idx, *params):
         """
         Returns the Stokes parameters for one W8
 
         Params:
-        idx: the subscript of the W8 witness to get stokes for
-        theta, alpha, beta, gamma: the minimization parameters
+            idx: the subscript of the W8 witness to get stokes for
+            params (theta, alpha, beta, gamma): the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
         """
-        assert theta is not None, "ERROR: theta not given"
-        assert alpha is not None, "ERROR: alpha not given"
-        assert beta is not None, "ERROR: beta not given"
-        assert gamma is not None, "ERROR: gamma not given"
 
         w8s = [self.W8_1, self.W8_2, self.W8_3, self.W8_4, self.W8_5, self.W8_6,
                self.W8_7, self.W8_8, self.W8_9, self.W8_10, self.W8_11, self.W8_12,
@@ -1216,25 +1211,26 @@ class W8(W5):
                self.W8_31, self.W8_32, self.W8_33, self.W8_34, self.W8_35, self.W8_36]
         
         # every 3rd witness needs gamma (NOTE: idx is one-indexed)
+        num_params = len(params)
         if idx % 3 == 0:
-            stokes = self.stokes_from_mtx(w8s[idx-1](theta, alpha, beta, gamma))
+            assert num_params == 4, f"ERROR: {num_params} params given, expected 4"
         else:
-            stokes = self.stokes_from_mtx(w8s[idx-1](theta, alpha, beta))
-        
+            assert num_params == 3, f"ERROR: {num_params} params given, expected 3"
+        stokes = self.stokes_from_mtx(w8s[idx-1](*params))
         return stokes
     
-    def expec_val(self, idx, theta, alpha, beta, gamma):
+    def expec_val(self, idx, *params):
         """
         Returns the expectation value of one W8
 
         Parameters:
-        idx: the subscript of the W8 witness to get expectation value for
-        theta: the minimization parameter
+            idx: the subscript of the W8 witness to get expectation value for
+            params (theta, alpha, beta, gamma): the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
         """
-        W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
+        W_stokes = self.W_stokes(idx, *params)
         return 0.25 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
@@ -2252,21 +2248,17 @@ class W7(W8):
         else:
             assert False, "Invalid set specified."
 
-    def W_stokes(self, idx, theta, alpha, beta, gamma):
+    def W_stokes(self, idx, *params):
         """
         Returns the Stokes parameters for one W7
 
         Params:
-        idx: the subscript of the W7 witness to get stokes for
-        theta, alpha, beta, gamma: the minimization parameters
+            idx: the subscript of the W7 witness to get stokes for
+            params (theta, alpha, beta, gamma): the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
         """
-        assert theta is not None, "ERROR: theta not given"
-        assert alpha is not None, "ERROR: alpha not given"
-        assert beta is not None, "ERROR: beta not given"
-        assert gamma is not None, "ERROR: gamma not given"
 
         w7s = [self.W7_1, self.W7_2, self.W7_3, self.W7_4, self.W7_5, self.W7_6,
                self.W7_7, self.W7_8, self.W7_9, self.W7_10, self.W7_11, self.W7_12,
@@ -2288,24 +2280,27 @@ class W7(W8):
                self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
 
         # every 3rd witness needs gamma (NOTE: idx is one-indexed)
+        num_params = len(params)
         if idx % 3 == 0:
-            stokes = self.stokes_from_mtx(w7s[idx-1](theta, alpha, beta, gamma))
+            assert num_params == 4, f"ERROR: {num_params} params given, expected 4"
         else:
-            stokes = self.stokes_from_mtx(w7s[idx-1](theta, alpha, beta))
+            assert num_params == 3, f"ERROR: {num_params} params given, expected 3"
+
+        stokes = self.stokes_from_mtx(w7s[idx-1](*params))
         return stokes
     
-    def expec_val(self, idx, theta, alpha, beta, gamma):
+    def expec_val(self, idx, *params):
         """
         Returns the expectation value of one W7
 
         Parameters:
-        idx: the subscript of the W7 witness to get expectation value for
-        theta: the minimization parameter
+            idx: the subscript of the W7 witness to get expectation value for
+            params (theta, alpha, beta, gamma): the minimization parameters
 
         NOTE: indexes start from 1 so that they correspond with
         the witness subscripts
         """
-        W_stokes = self.W_stokes(idx, theta, alpha, beta, gamma)
+        W_stokes = self.W_stokes(idx, *params)
         return 0.25 * np.dot(self.stokes, W_stokes)
 
     def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):

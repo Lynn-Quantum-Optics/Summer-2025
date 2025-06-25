@@ -682,31 +682,6 @@ def make_plots_E0(dfname, fig_title):
 def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
 
-def create_noise(rho, power):
-    '''
-    Adds noise of order power to a density matrix rho
-    
-    Parameters:
-        rho: NxN density matrix
-        power: integer multiple of 10
-    
-    Returns:
-        noisy_rho: rho with noise
-    '''
-    
-    # get size of matrix
-    n, _ = rho.shape
-    
-    # iterature over matrix and add some random noise to each elemnent
-    for i in range(n):
-        for j in range(n):
-            rando = random.random() / (10 ** power)
-            rho[i,j] += rando
-    noisy_rho = rho
-    
-    return noisy_rho
-
-
 def get_theo_rho(state, chi):
     '''
     Calculates the density matrix (rho) for a given set of parameters (chi) for Stuart's states
