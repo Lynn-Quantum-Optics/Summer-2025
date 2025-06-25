@@ -9,7 +9,9 @@ sample_rho.py.
 
 To run this file, simply use "run process_expt.py" and fill in the user inputs when prompted in
 your command line. You can also feed in a .txt file as input if you run with the following
-command format: "run process_expt.py <path_to_text_file>".
+command format: "run process_expt.py <path_to_text_file>". Some of these text files already exist!
+Check the data folder for a file called process_input.txt. Make sure to include the folder name in
+the file path.
 
 This file can be run on data files with the naming format "rho_(state_name-chi_trial).npy".
 """
