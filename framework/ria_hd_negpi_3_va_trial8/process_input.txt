@@ -1,0 +1,5 @@
+ria_hd_negpi_3_va_trial8
+8
+Min. Witness Values for $\cos(\\frac{\chi}{2}) |HD \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{3}} |VA \u27E9$
+hd_negpi_3_va
+y

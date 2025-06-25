@@ -134,13 +134,6 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             witness_idx:          iterator that keeps track of which witness we are minimizing
             params:               the witness parameters to be minimized (i.e. theta, alpha, beta)
         """
-        def print_callback(params):
-            """Callback function called after every iteration of scipy minimization.
-            Prints the current iterator value, expectation value, and parameters.
-            """
-            expec_val = loss(params)
-            #print(expec_val)
-            print_callback.iter += 1
 
         def loss(params):
             """
@@ -148,12 +141,9 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             """
             loss = W_val(witness_idx, *params)
             return loss
-        
-        # Initialize the iteration number for the callback function
-        print_callback.iter = 0
     
         # Scipy minimization using BFGS gradient descent
-        min_W = minimize(loss, params, method="L-BFGS-B", bounds=bounds, callback=print_callback)
+        min_W = minimize(loss, params, method="L-BFGS-B", bounds=bounds)
 
         # return the best-fit params and the minimized expectation value
         return min_W.x, min_W.fun
@@ -165,47 +155,45 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         if class_idx == 3:
             num_witnesses = 6
             num_params = 1
-
         elif class_idx == 5:
             num_witnesses = 9
-            num_params = 3
-
+            num_params = 2
         elif class_idx == 7:
             num_witnesses = 108
-            num_params = 4
-
-        elif class_idx == 8:
+            num_params = 3
+        else: #W8s
             num_witnesses = 36
-            num_params = 4
-
-        else:
-            raise IndexError("ERROR: Witness class not found or out-of-bounds")
-
-        # initialize bounds for the parameters to be minimized
-        lower_bound = 0.0
-        alpha_bound = lower_bound # initialize these upper bounds to
-        beta_bound = lower_bound  #    prevent error in minimization loop
-        gamma_bound = lower_bound
-
-        if num_params == 1:
-            theta_bound = np.pi
-        elif num_params == 2:
-            theta_bound = np.pi
-            alpha_bound = np.pi 
-        elif num_params == 3:
-            theta_bound = np.pi/2
-            alpha_bound = 2*np.pi 
-            beta_bound = 2*np.pi
-        else:
-            theta_bound = np.pi/2
-            alpha_bound = 2*np.pi
-            beta_bound = 2*np.pi
-            gamma_bound = 2*np.pi
-
-        bounds = [(lower_bound, theta_bound), (lower_bound, alpha_bound), (lower_bound, beta_bound), (lower_bound, gamma_bound)][:num_params]
+            num_params = 3
         
         for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1
-            #print("\nMinimizing witness W" + str(class_idx) + "_" + str(witness_idx))
+            # Every third witness of the W5s, W7s, and W8s has one more parameter
+            if class_idx != 3 and witness_idx % 3 == 0:
+                this_num_params = num_params + 1
+            else:
+                this_num_params = num_params
+            
+            # initialize bounds for the parameters to be minimized
+            lower_bound = 0.0
+            alpha_bound = lower_bound # initialize these upper bounds to
+            beta_bound = lower_bound  # prevent error when creating bounds list
+            gamma_bound = lower_bound
+
+            if this_num_params == 1:
+                theta_bound = np.pi
+            elif this_num_params == 2:
+                theta_bound = np.pi
+                alpha_bound = np.pi 
+            elif this_num_params == 3:
+                theta_bound = np.pi/2
+                alpha_bound = 2*np.pi 
+                beta_bound = 2*np.pi
+            else:
+                theta_bound = np.pi/2
+                alpha_bound = 2*np.pi
+                beta_bound = 2*np.pi
+                gamma_bound = 2*np.pi
+
+            bounds = [(lower_bound, theta_bound), (lower_bound, alpha_bound), (lower_bound, beta_bound), (lower_bound, gamma_bound)][:this_num_params]
             
             # Set the initial "best value" to infinity
             min_val = float("inf")
@@ -217,7 +205,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
                 gamma = np.random.uniform(low=lower_bound, high=gamma_bound)
 
                 # use the right number of parameters
-                param_vars = [theta, alpha, beta, gamma][:num_params]
+                param_vars = [theta, alpha, beta, gamma][:this_num_params]
                 this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars, bounds)
 
                 if this_min_val < min_val:
@@ -229,7 +217,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             alpha = lower_bound
             beta = lower_bound
             gamma = lower_bound
-            param_vars = [theta, alpha, beta, gamma][:num_params]
+            param_vars = [theta, alpha, beta, gamma][:this_num_params]
             this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars, bounds)
             if this_min_val < min_val:
                     best_param = this_min_params
@@ -240,7 +228,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
             alpha = alpha_bound
             beta = beta_bound
             gamma = gamma_bound
-            param_vars = [theta, alpha, beta, gamma][:num_params]
+            param_vars = [theta, alpha, beta, gamma][:this_num_params]
             this_min_params, this_min_val = optimize(W_class, witness_idx, param_vars, bounds)
             if this_min_val < min_val:
                     best_param = this_min_params
