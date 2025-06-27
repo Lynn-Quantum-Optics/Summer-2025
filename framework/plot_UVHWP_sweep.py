@@ -1,9 +1,8 @@
-#from lab_framework import Manager, analysis
+from lab_framework import Manager, analysis
 import numpy as np
 import scipy.optimize as opt # type: ignore
 from analysis_old import *
 import pandas as pd
-import analysis2_delete as analysis # delete
 import uncertainties as unc
 import uncertainties.unumpy as unp
 from uncertainties import core as ucore
@@ -11,57 +10,6 @@ from uncertainties import ufloat
 
 # Use this file to load UVHWP sweep data generated in the full tomography.
 # This file will plot the data and generate the same chi values used in the tomography.
-
-def reformat_float_to_ufloat(df_:pd.DataFrame) -> pd.DataFrame:
-        ''' Reformat a dataframe with floats to contain ufloats where applicable.
-
-        Each column "X" that has a corresponding column "X_SEM" will be collapsed to the single column "X" containing ufloats.
-
-        Parameters
-        ----------
-        df_ : pd.DataFrame
-            The dataframe to reformat.
-            
-        Returns
-        -------
-        pd.DataFrame
-            The reformatted dataframe.
-        '''
-        # create a copy of the dataframe to work with
-        df = df_.copy()
-        # loop through columns to see which should be reformatted
-        to_reformat = [c for c in df.columns if c+'_SEM' in df.columns]
-        # loop through columns to reformat
-        for c in to_reformat:
-            # recast to object type
-            df[c] = df[c].astype(object)
-            # create the ufloats
-            for i in range(len(df)):
-                df.at[i, c] = ufloat(df[c][i], df[c+'_SEM'][i])
-        # drop the sem columns
-        df.drop(columns=[c+'_SEM' for c in to_reformat], inplace=True)
-        # return the new dataframe
-        return df
-
-def load_data(file_path:str) -> pd.DataFrame:
-    ''' Load data saved by this class directly into a pandas dataframe.
-
-    Parameters
-    ----------
-    file_path : str
-        The path to the csv data file to load.
-    
-    Returns
-    -------
-    pd.DataFrame
-        The data loaded from the file.
-    '''
-    # start by just loading the data
-    df = pd.read_csv(file_path)
-    # return a reformatted version with ufloats
-    return reformat_float_to_ufloat(df)
-
-
 
 if __name__ == '__main__':
     basisName = 'hd_negpi_3_va'
@@ -92,8 +40,8 @@ if __name__ == '__main__':
         # might need to retune this if there are multiple roots. I'm only assuming one root
         print(UVHWP_angle)
 
-    df1 = load_data(f"{mpName}_{basisName}_trial{TRIAL}/UVHWP_balance_sweep1 original.csv")
-    df2 = load_data(f"{mpName}_{basisName}_trial{TRIAL}/UVHWP_balance_sweep2 original.csv")
+    df1 = Manager.load_data(f"{mpName}_{basisName}_trial{TRIAL}/UVHWP_balance_sweep1 original.csv")
+    df2 = Manager.load_data(f"{mpName}_{basisName}_trial{TRIAL}/UVHWP_balance_sweep2 original.csv")
 
 
     angles1, gammas1 = df1['C_UV_HWP'], df1['C4']
