@@ -13,7 +13,7 @@ command format: "run process_expt.py <path_to_text_file>". Some of these text fi
 Check the data folder for a file called process_input.txt. Make sure to include the folder name in
 the file path.
 
-This file can be run on data files with the naming format "rho_(state_name-chi_trial).npy".
+This file can be run on data files with the naming format "rho_(state_name-chi-trial).npy".
 """
 
 print("initializing...")
@@ -338,13 +338,14 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         settings: dict of settings for the experiment
         id: str, special identifier of experiment; used for naming the df
     __
-    Returns: df with:
+    Returns:
+        dataframe:
         - trial number
         - chi (if they exist)
         - fidelity
         - purity
-        - W theory (adjusted for purity) and W expt and W unc
-        - W' theory (adjusted for purity) and W' expt and W' unc
+        - W3 theory (adjusted for purity), W3 expt, and W3 unc
+        - W5 theory (adjusted for purity), W5 expt, and W5 unc
     '''
     # initialize df
     df = pd.DataFrame()
@@ -366,13 +367,14 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         ## MINIMIZING WITNESSES
         #########################
 
-        # calculate W and W' theory
+        # calculate W3 and W5 theory
+        # TODO: edit lists of witness classes to calculate W7s and W8s
         print("Minimizing witnesses for theoretical data...")
         W_T_params, W_T_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho_actual)
         print("Minimizing witnesses for adjusted theory data...")
         W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, purity))
 
-        # calculate W and W' expt
+        # calculate W3 and W5 expt
         flat_un_proj = un_proj.flatten()
         flat_un_proj_unc = un_proj_unc.flatten()
         print("Minimizing witnesses for experimental data...")
@@ -462,95 +464,49 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("\nAll theoretical W3s:", W_T_vals[:6])
         print("All adjusted theory W3s:", W_AT_vals[:6])
         print("All experimental W3s:", W_E_vals[:6])
-        print("\nTheoretical W3 min:", data['W3']['min_T'])
-        print("Adjusted theory W3 min:", data['W3']['min_AT'])
-        print("Experimental W3 min:", data['W3']['min_E'], "+/-", data['W3']['unc_E'])
-        # Initialize W3 objects with the experimental and theoretical rhos
-        W3_E_obj = sw.W3(rho=rho)
-        W3_T_obj = sw.W3(rho=rho_actual)
-        # Save W3's min name and params
-        W3_idx_T = data['W3']['name_T']
-        W3_param_T = data['W3']['param_T']
-        W3_idx_E = data['W3']['name_E']
-        W3_param_E = data['W3']['param_E']
-        # Print variables and expectation values
-        print("\nFor theoretical data, the most minimized W3 was W3_" + W3_idx_T)
-        print("It had the following theta:", W3_param_T)
-        print("Theoretical W3 min val based on theoretical params:", W3_T_obj.expec_val(int(W3_idx_T), *W3_param_T))
-        print("Experimental W3 min val based on theoretical params:", W3_E_obj.expec_val(int(W3_idx_T), *W3_param_T))
-        print("\nFor experimental data, the most minimized W3 was W3_" + W3_idx_E)
-        print("It had the following theta:", W3_param_E)
-        print("Theoretical W3 min val based on experimental params:", W3_T_obj.expec_val(int(W3_idx_E), *W3_param_E))
-        print("Experimental W3 min val based on experimental params:", W3_E_obj.expec_val(int(W3_idx_E), *W3_param_E))
+        # Print names, values, and params of T, AT, E minima
+        print("\nTheoretical W3 min: W3_" + data['W3']['name_T'], data['W3']['min_T'])
+        print("Adjusted theory W3 min: W3_" + data['W3']['name_AT'], data['W3']['min_AT'])
+        print("Experimental W3 min: W3_" + data['W3']['name_E'], data['W3']['min_E'], "+/-", data['W3']['unc_E'])
+        print("\nTheoretical theta:", data['W3']['param_T'])
+        print("Adjusted theory theta:", data['W3']['param_AT'])
+        print("Experimental theta:", data['W3']['param_E'])
 
         print("\n------\nW5 t1\n------")
-        print("\nAll theoretical W5s:", W_T_vals[6:9])
-        print("All adjusted theory W5s:", W_AT_vals[6:9])
-        print("All experimental W5s:", W_E_vals[6:9])
-        print("\nTheoretical W5 triplet 1 min:", data['W5']['t1']['min_T'])
-        print("Adjusted theory W5 triplet 1 min:", data['W5']['t1']['min_AT'])
-        print("Experimental W5 triplet 1 min:", data['W5']['t1']['min_E'], "+/-", data['W5']['t1']['unc_E'])
-        # Initialize W5 objects with the experimental and theoretical rhos
-        W5_E_obj = sw.W5(rho=rho)
-        W5_T_obj = sw.W5(rho=rho_actual)
-        # Save W5 t1's experimental min name and params
-        W5t1_idx_T = data['W5']['t1']['name_T']
-        W5t1_params_T = data['W5']['t1']['params_T']
-        W5t1_idx_E = data['W5']['t1']['name_E']
-        W5t1_params_E = data['W5']['t1']['params_E']
-        # Print variables and expectation values
-        print("\nFor theoretical data, the most minimized W5 t1 was W5_" + W5t1_idx_T)
-        print("It had the following params:", W5t1_params_T)
-        print("Theoretical W5 t1 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t1_idx_T), *W5t1_params_T))
-        print("Experimental W5 t1 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t1_idx_T), *W5t1_params_T))
-        print("\nFor experimental data, the most minimized W5 t1 was W5_" + W5t1_idx_E)
-        print("It had the following params:", W5t1_params_E)
-        print("Theoretical W5 t1 min val based on experimental params:", W5_T_obj.expec_val(int(W5t1_idx_E), *W5t1_params_E))
-        print("Experimental W5 t1 min val based on experimental params:", W5_E_obj.expec_val(int(W5t1_idx_E), *W5t1_params_E))
+        print("\nAll theoretical W5 t1s:", W_T_vals[6:9])
+        print("All adjusted theory W5 t1s:", W_AT_vals[6:9])
+        print("All experimental W5 t1s:", W_E_vals[6:9])
+        # Print names, values, and params of T, AT, E minima
+        print("\nTheoretical W5 triplet 1 min: W5_" + data['W5']['t1']['name_T'], data['W5']['t1']['min_T'])
+        print("Adjusted theory W5 triplet 1 min: W5_" + data['W5']['t1']['name_AT'], data['W5']['t1']['min_AT'])
+        print("Experimental W5 triplet 1 min: W5_" + data['W5']['t1']['name_E'], data['W5']['t1']['min_E'], "+/-", data['W5']['t1']['unc_E'])
+        print("\nTheoretical params:", data['W5']['t1']['params_T'])
+        print("Adjusted theory params:", data['W5']['t1']['params_AT'])
+        print("Experimental params:", data['W5']['t1']['params_E'])
 
         print("\n------\nW5 t2\n------")
-        print("\nAll theoretical W5s:", W_T_vals[9:12])
-        print("All adjusted theory W5s:", W_AT_vals[9:12])
-        print("All experimental W5s:", W_E_vals[9:12])
-        print("\nTheoretical W5 triplet 2 min:", data['W5']['t2']['min_T'])
-        print("Adjusted theory W5 triplet 2 min:", data['W5']['t2']['min_AT'])
-        print("Experimental W5 triplet 2 min:", data['W5']['t2']['min_E'], "+/-", data['W5']['t2']['unc_E'])
-        # Save W5 t2's experimental min name and params
-        W5t2_idx_T = data['W5']['t2']['name_T']
-        W5t2_params_T = data['W5']['t2']['params_T']
-        W5t2_idx_E = data['W5']['t2']['name_E']
-        W5t2_params_E = data['W5']['t2']['params_E']
-        # Print variables and expectation values
-        print("\nFor theoretical data, the most minimized W5 t2 was W5_" + W5t2_idx_T)
-        print("It had the following params:", W5t2_params_T)
-        print("Theoretical W5 t2 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t2_idx_T), *W5t2_params_T))
-        print("Experimental W5 t2 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t2_idx_T), *W5t2_params_T))
-        print("\nFor experimental data, the most minimized W5 t2 was W5_" + W5t2_idx_E)
-        print("It had the following params:", W5t2_params_E)
-        print("Theoretical W5 t2 min val based on experimental params:", W5_T_obj.expec_val(int(W5t2_idx_E), *W5t2_params_E))
-        print("Experimental W5 t2 min val based on experimental params:", W5_E_obj.expec_val(int(W5t2_idx_E), *W5t2_params_E))
+        print("\nAll theoretical W5 t2s:", W_T_vals[9:12])
+        print("All adjusted theory W5 t2s:", W_AT_vals[9:12])
+        print("All experimental W5 t2s:", W_E_vals[9:12])
+        # Print names, values, and params of T, AT, E minima
+        print("\nTheoretical W5 triplet 2 min: W5_" + data['W5']['t2']['name_T'], data['W5']['t2']['min_T'])
+        print("Adjusted theory W5 triplet 2 min: W5_" + data['W5']['t2']['name_AT'], data['W5']['t2']['min_AT'])
+        print("Experimental W5 triplet 2 min: W5_" + data['W5']['t2']['name_E'], data['W5']['t2']['min_E'], "+/-", data['W5']['t2']['unc_E'])
+        print("\nTheoretical params:", data['W5']['t2']['params_T'])
+        print("Adjusted theory params:", data['W5']['t2']['params_AT'])
+        print("Experimental params:", data['W5']['t2']['params_E'])
 
         print("\n------\nW5 t3\n------")
-        print("\nAll theoretical W5s:", W_T_vals[12:15])
-        print("All adjusted theory W5s:", W_AT_vals[12:15])
-        print("All experimental W5s:", W_E_vals[12:15])
-        print("\nTheoretical W5 triplet 3 min:", data['W5']['t3']['min_T'])
-        print("Adjusted theory W5 triplet 3 min:", data['W5']['t3']['min_AT'])
-        print("Experimental W5 triplet 3 min:", data['W5']['t3']['min_E'], "+/-", data['W5']['t3']['unc_E'])
-        # Save W5 t3's experimental min name and params
-        W5t3_idx_T = data['W5']['t3']['name_T']
-        W5t3_params_T = data['W5']['t3']['params_T']
-        W5t3_idx_E = data['W5']['t3']['name_E']
-        W5t3_params_E = data['W5']['t3']['params_E']
-        # Print variables and expectation values
-        print("\nFor theoretical data, the most minimized W5 t3 was W5_" + W5t3_idx_T)
-        print("It had the following params:", W5t3_params_T)
-        print("Theoretical W5 t3 min val based on theoretical params:", W5_T_obj.expec_val(int(W5t3_idx_T), *W5t3_params_T))
-        print("Experimental W5 t3 min val based on theoretical params:", W5_E_obj.expec_val(int(W5t3_idx_T), *W5t3_params_T))
-        print("\nFor experimental data, the most minimized W5 t3 was W5_" + W5t3_idx_E)
-        print("It had the following params:", W5t3_params_E)
-        print("Theoretical W5 t3 min val based on experimental params:", W5_T_obj.expec_val(int(W5t3_idx_E), *W5t3_params_E))
-        print("Experimental W5 t3 min val based on experimental params:", W5_E_obj.expec_val(int(W5t3_idx_E), *W5t3_params_E))
+        print("\nAll theoretical W5 t3s:", W_T_vals[12:15])
+        print("All adjusted theory W5 t3s:", W_AT_vals[12:15])
+        print("All experimental W5 t3s:", W_E_vals[12:15])
+        # Print names, values, and params of T, AT, E minima
+        print("\nTheoretical W5 triplet 3 min: W5_" + data['W5']['t3']['name_T'], data['W5']['t3']['min_T'])
+        print("Adjusted theory W5 triplet 3 min: W5_" + data['W5']['t3']['name_AT'], data['W5']['t3']['min_AT'])
+        print("Experimental W5 triplet 3 min: W5_" + data['W5']['t3']['name_E'], data['W5']['t3']['min_E'], "+/-", data['W5']['t3']['unc_E'])
+        print("\nTheoretical params:", data['W5']['t3']['params_T'])
+        print("Adjusted theory params:", data['W5']['t3']['params_AT'])
+        print("Experimental params:", data['W5']['t3']['params_E'])
 
         if do_W7s_W8s:
             # TODO: fix to reflect new groupings
@@ -652,7 +608,7 @@ def make_plots_E0(dfname, fig_title):
     """
     popt_W3_T, pcov_W3_T = curve_fit(sinsq, chi, W3_min_T, maxfev = 10000)
     popt_W3_AT, pcov_W3_AT = curve_fit(sinsq, chi, W3_min_AT, maxfev = 10000)
-    #print('popt_W are:', popt_W_AT)
+    #print('popt_W3 are:', popt_W3_AT)
     popt_W5_T, pcov_W5_T = curve_fit(sinsq, chi, W5_min_T, maxfev = 10000)
     popt_W5_AT, pcov_W5_AT = curve_fit(sinsq, chi, W5_min_AT, maxfev = 10000)
     
@@ -701,7 +657,7 @@ def get_theo_rho(state, chi):
     D = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (1)])
     A = ket([1/np.sqrt(2) * 1, 1/np.sqrt(2) * (-1)])
     
-    ## The following state(s) are an attempt to find new positive W negative W prime states.
+    ## The following state(s) are an attempt to find new positive W3 negative W5 states.
     if state == 'HR_VL':
         phi = (1 + np.exp(1j*chi))/2 * np.kron(H,R) + (1 - np.exp(1j*chi))/2 * np.kron(V,L)
     
