@@ -1,5 +1,5 @@
 ria_hr_negpi_6_vl_trial1
 1
-Min. Witness Values for $\cos(\\frac{\chi}{2}) |HR \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{6}} |VL \u27E9$
+Min. Witness Values for $\cos(\\frac{\chi}{2}) |HR' \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{6}} |VL' \u27E9$
 hr_negpi_6_vl
 y
