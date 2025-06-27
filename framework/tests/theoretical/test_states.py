@@ -1,6 +1,6 @@
 import numpy as np
-import finding_states.states_and_witnesses as states
-import finding_states.operations as op
+import states_and_witnesses as states
+import operations as op
 
 
 ############################
