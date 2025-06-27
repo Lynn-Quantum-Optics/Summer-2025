@@ -63,8 +63,36 @@ def get_theo_rho(state, chi, mod):
     if state == 'hd_negpi_3_va_mod':
         phi = np.cos(chi/2) * np.kron(H, D) + np.exp(-1j * np.pi/mod) * np.sin(chi/2) * np.kron(V, A)
 
+    if state == 'cosHH_minusisinVV':
+        phi = np.cos(chi/2) * np.kron(H, H) - 1j * np.sin(chi/2) * np.kron(V, V)
+
+    if state == 'cosHV_minusisinVH':
+        phi = np.cos(chi/2) * np.kron(H, V) - 1j * np.sin(chi/2) * np.kron(V, H)
+
     # create rho and return it
     rho = phi @ phi.conj().T
+    return rho
+
+def gen_mixed_state(state_list, state_prob, chi, mod=0):
+    '''
+    Generates a density matrix for a given mixed state
+    
+    Parameters:
+        state_list: list of names of states that compose the mixed state
+        state_prob: list of respective probabilities of each state
+        chi: chi value
+    
+    Returns:
+        rho: the density matrix of the mixed state
+    '''
+    
+    # get individual rho's per state in state_list, taking probability into account
+    individual_rhos = []
+    for i, state in enumerate(state_list):
+        individual_rhos.append(state_prob[i] * get_theo_rho(state, chi, mod))
+    # sum all matrices in individual rhos
+    rho = np.sum(individual_rhos, axis = 0)
+    
     return rho
     
 def create_noise(rho, power):
@@ -106,7 +134,7 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
     '''
     
     # calculate W and W' theory
-    W_T_ls = compute_witnesses(rho = rho_actual, return_all = True) # theory #, return_all = True, return_params = True
+    W_T_ls, W_params = compute_witnesses(rho = rho_actual, return_all = True, return_params=True) # theory #, return_all = True, return_params = True
     # parse lists
     W_3s = W_T_ls[:6]
     W_5_t1s = W_T_ls[6:9]
@@ -131,14 +159,14 @@ def analyze_rho(rho_actual, verbose = False, id='id'):
         Wp3_min_name = index_names.get(W_T_ls.index(Wp_t3), 'Unknown')
         
         # Return the params as well, add in if return_params = True in compute_witness call
-        #W_param = W_params[0]
-        #Wp1_param = W_params[1]
-        #Wp2_param = W_params[2]
-        #Wp3_param = W_params[3]
+        # W_param = W_params[0]
+        # Wp1_param = W_params[1]
+        # Wp2_param = W_params[2]
+        # Wp3_param = W_params[3]
         #add to returns , W_param, Wp1_param, Wp2_param, Wp3_param
         
         # Find names from dictionary and return them and their values
-        return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_3s, W_5_t1s, W_5_t2s, W_5_t3s
+        return W_min, Wp_t1, Wp_t2, Wp_t3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_3s, W_5_t1s, W_5_t2s, W_5_t3s, W_params
     else:
          return W_min, Wp_t1, Wp_t2, Wp_t3
 
@@ -193,7 +221,8 @@ if __name__ == '__main__':
     etas = [np.pi/4] #np.pi/12, np.pi/6, np.pi/4 , np.pi/3
     chis = np.linspace(0.001, np.pi/2, 6)
     plot = False
-    state = 'hr_negpi_6_vl_mod'
+    state = 'hhivv_hvivh_mix'
+    state_type = 'mix'
 
     mod = 5.4
 
@@ -201,12 +230,17 @@ if __name__ == '__main__':
     
     ### Save witness values to above lists of lists
     for chi in chis:
-        rho = get_theo_rho(state, chi, mod)
+        if state_type == 'mix':
+            state_list = ['cosHH_minusisinVV', 'cosHV_minusisinVH']
+            prob_list = [0.65, 0.35]
+            rho = gen_mixed_state(state_list, prob_list, chi)
+        else:
+            rho = get_theo_rho(state, chi, mod)
         # find the minimum witness expectation value of the 3 w primes and of the W.
         # Add in to get which W was minimum: W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_param, Wp1_param, Wp2_param, Wp3_param,  verbose = True
-        WM, WP1, WP2, WP3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_3s, W_5_t1s, W_5_t2s, W_5_t3s = analyze_rho(rho, verbose=True) 
+        WM, WP1, WP2, WP3, W_min_name, Wp1_min_name, Wp2_min_name, Wp3_min_name, W_3s, W_5_t1s, W_5_t2s, W_5_t3s, W_params = analyze_rho(rho, verbose=True) 
         min_wp = min(WP1, WP2, WP3)
-        print('My Ws were:', min_wp, 'at chi:', chi)
+        print('\nMy Ws were:', min_wp, 'at chi:', chi)
         print('Minimum W was:', W_min_name, 'with value', WM)
         print('Minimum W prime 1 was:', Wp1_min_name, 'with value', WP1)
         print('Minimum W prime 2 was:', Wp2_min_name, 'with value', WP2)
@@ -215,6 +249,7 @@ if __name__ == '__main__':
         print('My W_5 triplets 1s were:', W_5_t1s)
         print('My W_5 triplets 2s were:', W_5_t2s)
         print('My W_5 triplets 3s were:', W_5_t3s)
+        print(W_params)
     
     # wp8 is def the min for this one (hd_negpi_3_va) :)
     #all other w_5s are near zero, w_3s are above zero

@@ -762,6 +762,12 @@ def get_theo_rho(state, chi):
     if state == 'hr_negpi_6_vl':
         phi = np.cos(chi/2) * np.kron(H, R) + np.exp(-1j * np.pi/6) * np.sin(chi/2) * np.kron(V, L)
 
+    if state == 'hr_negpi_6_vl_':
+        theta = np.arctan(np.sqrt(.225/.275))
+        R = np.cos(theta) * H + 1j * np.sin(theta) * V
+        L = np.sin(theta) * H - 1j * np.cos(theta) * V
+        phi = np.cos(chi/2) * np.kron(H, R) + np.exp(-1j * np.pi/6) * np.sin(chi/2) * np.kron(V, L)
+
     if state =='cosHA_minusphasesinVD':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * 1.27) * np.sin(chi/2) * np.kron(V,D)
 
