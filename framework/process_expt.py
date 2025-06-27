@@ -19,6 +19,7 @@ This file can be run on data files with the naming format "rho_(state_name-chi-t
 print("initializing...")
 
 # Silence TensorFlow warnings that make it hard to read outputs of this file
+import warnings
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -161,7 +162,7 @@ def parse_W_ls(W_params, W_vals, do_W7s_W8s, data_dict, intype, W_unc=None):
     # expec. value, and minimization param
     data_dict['W3']['name_' + intype] = W3_min_name.split("_")[1]
     data_dict['W3']['min_' + intype] = W3_vals_dict[W3_min_name]
-    data_dict['W3']['param_' + intype] = W_params_dict[W3_min_name]
+    data_dict['W3']['params_' + intype] = W_params_dict[W3_min_name]
 
     ########
     ## W5s
@@ -330,6 +331,42 @@ def parse_W_ls(W_params, W_vals, do_W7s_W8s, data_dict, intype, W_unc=None):
 
     return data_dict
 
+def print_witness_data(group, W_vals, dict, list_slice, not_measured=""):
+    """
+    A generic function for printing the minimized witness data.
+    Parameters:
+        group: the name of the group the witnesses belong to, e.g. "W5 t1"
+        W_vals: contains the lists of theoretical witness minima, adjusted theoretical witness
+                minima, and experimental witness minima, in that order
+        dict: the dictionary or subdictionary containing the minimum data
+        list_slice: a slice object containing the range of values in the minimization
+                    output lists that pertain to a certain group. e.g. for W5 t1,
+                    slice(6, 9) produces [6:9]
+        not_measured: if we want to provide additional info about which measurements
+                        are excluded by a group of witnesses, this will display
+                        that info in the header for the group
+    """
+    # check if excluded measurements were given
+    if not_measured == "":
+        header = group
+    else:
+        header = group + ": " + not_measured
+
+    # get the witness class from the group name
+    w_class = group[:2]
+
+    print(f"\n------\n{header}\n------")
+    print("\nAll theoretical minima:", W_vals[0][list_slice])
+    print("All adjusted theory minima:", W_vals[1][list_slice])
+    print("All experimental minima:", W_vals[2][list_slice])
+    # print names, values, and params of T, AT, E minima
+    print(f"\nTheoretical {group} min: {w_class}_" + dict['name_T'], dict['min_T'])
+    print(f"Adjusted theory {group} min: {w_class}_" + dict['name_AT'], dict['min_AT'])
+    print(f"Experimental {group} min: {w_class}_" + dict['name_E'], dict['min_E'], "+/-", dict['unc_E'])
+    print("Theoretical params:", dict['params_T'])
+    print("Adjusted theory params:", dict['params_AT'])
+    print("Experimental params:", dict['params_E'])
+
 def analyze_rhos(filenames, rho_actuals, id='id'):
     '''Extending get_rho_from_file to include multiple files; 
     __
@@ -460,64 +497,34 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         # Experimental data
         data = parse_W_ls(W_E_params, W_E_vals, do_W7s_W8s, data, "E", W_E_unc)
 
-        print("\n------\nW3s\n------")
-        print("\nAll theoretical W3s:", W_T_vals[:6])
-        print("All adjusted theory W3s:", W_AT_vals[:6])
-        print("All experimental W3s:", W_E_vals[:6])
-        # Print names, values, and params of T, AT, E minima
-        print("\nTheoretical W3 min: W3_" + data['W3']['name_T'], data['W3']['min_T'])
-        print("Adjusted theory W3 min: W3_" + data['W3']['name_AT'], data['W3']['min_AT'])
-        print("Experimental W3 min: W3_" + data['W3']['name_E'], data['W3']['min_E'], "+/-", data['W3']['unc_E'])
-        print("\nTheoretical theta:", data['W3']['param_T'])
-        print("Adjusted theory theta:", data['W3']['param_AT'])
-        print("Experimental theta:", data['W3']['param_E'])
+        # Put all lists of minimized witness values into one list for more elegant passing
+        all_W_vals = [W_T_vals, W_AT_vals, W_E_vals]
 
-        print("\n------\nW5 t1\n------")
-        print("\nAll theoretical W5 t1s:", W_T_vals[6:9])
-        print("All adjusted theory W5 t1s:", W_AT_vals[6:9])
-        print("All experimental W5 t1s:", W_E_vals[6:9])
-        # Print names, values, and params of T, AT, E minima
-        print("\nTheoretical W5 triplet 1 min: W5_" + data['W5']['t1']['name_T'], data['W5']['t1']['min_T'])
-        print("Adjusted theory W5 triplet 1 min: W5_" + data['W5']['t1']['name_AT'], data['W5']['t1']['min_AT'])
-        print("Experimental W5 triplet 1 min: W5_" + data['W5']['t1']['name_E'], data['W5']['t1']['min_E'], "+/-", data['W5']['t1']['unc_E'])
-        print("\nTheoretical params:", data['W5']['t1']['params_T'])
-        print("Adjusted theory params:", data['W5']['t1']['params_AT'])
-        print("Experimental params:", data['W5']['t1']['params_E'])
-
-        print("\n------\nW5 t2\n------")
-        print("\nAll theoretical W5 t2s:", W_T_vals[9:12])
-        print("All adjusted theory W5 t2s:", W_AT_vals[9:12])
-        print("All experimental W5 t2s:", W_E_vals[9:12])
-        # Print names, values, and params of T, AT, E minima
-        print("\nTheoretical W5 triplet 2 min: W5_" + data['W5']['t2']['name_T'], data['W5']['t2']['min_T'])
-        print("Adjusted theory W5 triplet 2 min: W5_" + data['W5']['t2']['name_AT'], data['W5']['t2']['min_AT'])
-        print("Experimental W5 triplet 2 min: W5_" + data['W5']['t2']['name_E'], data['W5']['t2']['min_E'], "+/-", data['W5']['t2']['unc_E'])
-        print("\nTheoretical params:", data['W5']['t2']['params_T'])
-        print("Adjusted theory params:", data['W5']['t2']['params_AT'])
-        print("Experimental params:", data['W5']['t2']['params_E'])
-
-        print("\n------\nW5 t3\n------")
-        print("\nAll theoretical W5 t3s:", W_T_vals[12:15])
-        print("All adjusted theory W5 t3s:", W_AT_vals[12:15])
-        print("All experimental W5 t3s:", W_E_vals[12:15])
-        # Print names, values, and params of T, AT, E minima
-        print("\nTheoretical W5 triplet 3 min: W5_" + data['W5']['t3']['name_T'], data['W5']['t3']['min_T'])
-        print("Adjusted theory W5 triplet 3 min: W5_" + data['W5']['t3']['name_AT'], data['W5']['t3']['min_AT'])
-        print("Experimental W5 triplet 3 min: W5_" + data['W5']['t3']['name_E'], data['W5']['t3']['min_E'], "+/-", data['W5']['t3']['unc_E'])
-        print("\nTheoretical params:", data['W5']['t3']['params_T'])
-        print("Adjusted theory params:", data['W5']['t3']['params_AT'])
-        print("Experimental params:", data['W5']['t3']['params_E'])
+        # W3s
+        print_witness_data("W3", all_W_vals, data['W3'], slice(6))
+        # W5s
+        print_witness_data("W5 t1", all_W_vals, data['W5']['t1'], slice(6, 9))
+        print_witness_data("W5 t2", all_W_vals, data['W5']['t2'], slice(9, 12))
+        print_witness_data("W5 t3", all_W_vals, data['W5']['t3'], slice(12, 15))
 
         if do_W7s_W8s:
-            # TODO: fix to reflect new groupings
-            print("")
-            # print("\nTheoretical W7 min:", data['W7']['min_T'])
-            # print("Adjusted theory W7 min:", data['W7']['min_AT'])
-            # print("Experimental W7 min:", data['W7']['min_E'], "+/-", data['W7']['unc_E'])
-
-            # print("\nTheoretical W8 min:", data['W8']['min_T'])
-            # print("Adjusted theory W8 min:", data['W8']['min_AT'])
-            # print("Experimental W8 min:", data['W8']['min_E'], "+/-", data['W8']['unc_E'])
+            # W7s
+            print_witness_data("W7 s1", all_W_vals, data['W7']['no_XY_YX'], slice(15, 27), not_measured="no XY, YX")
+            print_witness_data("W7 s2", all_W_vals, data['W7']['no_XY_YZ'], slice(27, 39), not_measured="no XY, YZ")
+            print_witness_data("W7 s3", all_W_vals, data['W7']['no_XY_ZX'], slice(39, 51), not_measured="no XY, ZX")
+            print_witness_data("W7 s4", all_W_vals, data['W7']['no_XZ_ZX'], slice(51, 63), not_measured="no XZ, ZX")
+            print_witness_data("W7 s5", all_W_vals, data['W7']['no_XZ_ZY'], slice(63, 75), not_measured="no XZ, ZY")
+            print_witness_data("W7 s6", all_W_vals, data['W7']['no_XZ_YX'], slice(75, 87), not_measured="no XZ, YX")
+            print_witness_data("W7 s7", all_W_vals, data['W7']['no_YX_ZY'], slice(87, 99), not_measured="no YX, ZY")
+            print_witness_data("W7 s8", all_W_vals, data['W7']['no_YZ_ZY'], slice(99, 111), not_measured="no YZ, ZY")
+            print_witness_data("W7 s9", all_W_vals, data['W7']['no_YZ_ZX'], slice(111, 123), not_measured="no YZ, ZX")
+            # W8s
+            print_witness_data("W8 s1", all_W_vals, data['W8']['no_XY'], slice(123, 129), not_measured="no XY")
+            print_witness_data("W8 s2", all_W_vals, data['W8']['no_YX'], slice(129, 135), not_measured="no YX")
+            print_witness_data("W8 s3", all_W_vals, data['W8']['no_XZ'], slice(135, 141), not_measured="no XZ")
+            print_witness_data("W8 s4", all_W_vals, data['W8']['no_ZX'], slice(141, 147), not_measured="no ZX")
+            print_witness_data("W8 s5", all_W_vals, data['W8']['no_YZ'], slice(147, 153), not_measured="no YZ")
+            print_witness_data("W8 s6", all_W_vals, data['W8']['no_ZY'], slice(153, 159), not_measured="no ZY")
 
         #######################
         ## BUILDING DATAFRAME
@@ -628,8 +635,6 @@ def make_plots_E0(dfname, fig_title):
     ax.set_xlabel('$\chi$ (deg)', fontsize=20)
     ax.axhline(y=0, color='black')
 
-    # TODO: fix
-    #"Entangled State Witnessed by 3rd W5 Triplet (2025)"
     plt.suptitle(fig_title, fontsize=20)
     plt.tight_layout()
     plt.savefig(join(DATA_PATH, f'{STATE_ID}_trial{TRIAL}_2025_analysis.pdf'))
@@ -800,7 +805,9 @@ if __name__ == '__main__':
                 chis = [eval(chis_str)]
 
     # ignore escape sequences in FIG_TITLE to allow parsing LaTeX
-    FIG_TITLE = FIG_TITLE.encode('utf-8').decode('unicode_escape')
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        FIG_TITLE = FIG_TITLE.encode('utf-8').decode('unicode_escape')
     rho_actuals = []
     filenames = []
     rho_actuals = []
