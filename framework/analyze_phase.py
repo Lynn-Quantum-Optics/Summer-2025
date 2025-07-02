@@ -1,3 +1,14 @@
+'''
+Author: Ria Haapala
+Last Update: 7/2/2025
+
+This file plots the phase drift of a state over all chi values given the density matrices generated in data collection.
+
+Note: this file assumes the phase is present in the density matrix with the form a = cos(phase) + i*sin(phase) such 
+that phase = arctan2(Im(a)/Re(a)). If this is not the case for the state you are working with, duplicate this file 
+and modify it as necessary.
+'''
+
 import numpy as np
 import matplotlib.pyplot as plt
 

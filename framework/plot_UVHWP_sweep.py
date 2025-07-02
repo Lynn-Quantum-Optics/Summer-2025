@@ -1,3 +1,12 @@
+'''
+Author: Ria Haapala
+Last Update: 7/2/2025
+
+This file can be used to load and plot the UVHWP sweep data generated in a data collection of six chi values.
+The file will plot the data and generate a list of chi values, which are identical to the values the data 
+collection file will generate itself.
+'''
+
 from lab_framework import Manager, analysis
 import numpy as np
 import scipy.optimize as opt # type: ignore
@@ -8,8 +17,6 @@ import uncertainties.unumpy as unp
 from uncertainties import core as ucore
 from uncertainties import ufloat
 
-# Use this file to load UVHWP sweep data generated in the full tomography.
-# This file will plot the data and generate the same chi values used in the tomography.
 
 if __name__ == '__main__':
     basisName = 'hd_negpi_3_va'
