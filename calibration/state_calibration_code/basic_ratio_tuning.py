@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import uncertainties.unumpy as unp
 
+# use this file to ratio tune an experimental state. Make sure to modify the bases used to collect data to match your state.
+# For a state of the form cos(chi/2)*|H>|alpha> + (e^i*gamma)*sin(chi/2)*|V>|alpha_perp>, you will want to collect data 
+# in the |H>|alpha> basis and the |V>|alpha_perp> basis.
+
 if __name__ == '__main__':
     TRIAL = 4 #PLEASE UPDATE
     DATE = "05232025" #PLEASE UPDATE

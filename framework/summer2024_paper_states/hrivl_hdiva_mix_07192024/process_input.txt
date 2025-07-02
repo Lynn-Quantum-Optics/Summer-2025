@@ -1,0 +1,7 @@
+summer2024_paper_states/hrivl_hdiva_mix_07192024
+3
+Entangled State Witnessed by 2nd W5 Triplet (2025)
+HRiVL_HDiVA_mix
+cosHR_minusisinVL cosHA_minusisinVD
+0.65 0.35
+y
