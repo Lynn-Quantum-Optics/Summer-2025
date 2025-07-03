@@ -12,12 +12,6 @@ and modify it as necessary.
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-# Plots the phase drift for all chi values
-# Note: this file assumes the phase is present in the density matrices with the form cos(phase) + i*sin(phase)
-#       in all entries in the upper right block. If this is not the case, duplicate this file and modify it
-#       for your own purposes
-
 if __name__ == '__main__':
     TRIAL = 3
     chis = np.linspace(0.001, np.pi/2, 6)

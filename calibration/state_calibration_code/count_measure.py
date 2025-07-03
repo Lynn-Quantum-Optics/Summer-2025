@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import uncertainties.unumpy as unp
 
+# mesures counts in a variety of bases for a specified state.
 
 if __name__ == '__main__':
     # initialize the manager
