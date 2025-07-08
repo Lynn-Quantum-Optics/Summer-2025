@@ -465,6 +465,9 @@ def get_theo_rho(state, chi, gamma):
     
     if state == 'HH_VV_gamma':
         phi = np.cos(chi/2)*np.kron(H,H) + np.exp(1j * gamma) * np.sin(chi/2) * np.kron(V,V)
+    
+    if state == 'test':
+        phi = np.sqrt(1/2) * np.kron(H, A) + np.exp(-1j*5*np.pi/6) * np.sqrt(1/2) * np.kron(V, D)
 
     # create rho and return it
     rho = phi @ phi.conj().T
@@ -474,8 +477,10 @@ def get_theo_rho(state, chi, gamma):
 if __name__ == '__main__':
     # set path & other user input variables
     ID = "HA_VD_gamma"
+    ID = 'test'
     gamma = -np.pi/3
     STATE_ID = f"{ID}_{gamma}"
+    STATE_ID = 'test'
 
     chis = np.linspace(0.001, np.pi/2, 6)
 
