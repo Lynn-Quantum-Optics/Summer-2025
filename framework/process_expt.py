@@ -64,6 +64,7 @@ def get_rho_from_file(filename, verbose=True, angles=None):
             return trial, chi
 
     # read in data
+    # TODO: revise purity, fidelity, adjusted rho definitions in the tomography files
     rho, unc, Su, un_proj, un_proj_unc, chi, angles, fidelity, purity = np.load(join(DATA_PATH,filename), allow_pickle=True)
     trial, chi = split_filename()
     
@@ -76,14 +77,12 @@ def get_rho_from_file(filename, verbose=True, angles=None):
         print('uncertainty \n---')
         print(unc)
         print('fidelity', fidelity)
-        print('purity', purity)
-
         print('trace of measured rho:', np.trace(rho))
         print('eigenvalues of measured rho:', np.linalg.eigvals(rho))
 
-    return trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc
+    return trial, rho, chi, angles, un_proj, un_proj_unc
 
-def gen_mixed_state(state_list, state_prob, chi):
+def get_mixed_rho(state_list, state_prob, chi):
     '''
     Generates a density matrix for a given mixed state
     
@@ -99,11 +98,25 @@ def gen_mixed_state(state_list, state_prob, chi):
     # get individual rho's per state in state_list, taking probability into account
     individual_rhos = []
     for i, state in enumerate(state_list):
-        individual_rhos.append(state_prob[i] * get_theo_rho(state, chi))
+        individual_rhos.append(state_prob[i] * get_pure_rho(state, chi))
     # sum all matrices in individual rhos
     rho = np.sum(individual_rhos, axis = 0)
     
     return rho
+
+def real_chi(rho):
+        """
+        Calculates the 'actual' chi for experimental data, since we may have
+        discrepancies from the target chi.
+        This 'actual' chi comes from the diagonal entries in the expt density matrix.
+        """
+        return 2 * np.arctan(np.sqrt((rho[2][2] + rho[3][3]) / (rho[0][0] + rho[1][1])))
+
+def get_purity(rho, chi):
+    ''' Calculates the state purity of a density matrix. '''
+    tr_rho_sq = np.trace(rho @ rho)
+    p = np.sqrt(2*(tr_rho_sq-1) / np.sin(chi)**2 + 1)
+    return p.real
 
 def adjust_rho(rho, expt_purity):
     ''' Adjusts theo density matrix to account for experimental impurity
@@ -388,13 +401,15 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
     df = pd.DataFrame()
 
     for i, file in tqdm(enumerate(filenames)):
-        trial, rho, unc, Su, fidelity, purity, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
-        print('Purity is:', purity)
+        trial, rho, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+        purity = STATE_PURITY
+        # check if we got a state purity from chi=90 and if not, calculate it for this chi value
+        if STATE_PURITY == None:
+            purity = get_purity(rho, real_chi(rho))
         rho_actual = rho_actuals[i]
-        #TODO: change back to fidelity from file after getting a new tomography
         fidelity = get_fidelity(rho_actual, rho)
-        print('Fidelity is:', fidelity)
-        
+        print('\nFidelity is:', fidelity)
+        print('Purity is:', purity)
         print('Theoretical rho is:')
         print(np.round(rho_actual, 4))
         print('Experimental rho is:')
@@ -643,9 +658,9 @@ def make_plots_E0(dfname, fig_title):
 def ket(data):
     return np.array(data, dtype=complex).reshape(-1,1)
 
-def get_theo_rho(state, chi):
+def get_pure_rho(state, chi):
     '''
-    Calculates the density matrix (rho) for a given set of parameters (chi) for Stuart's states
+    Calculates the density matrix (rho) for a given parameter (chi) for pure states
     
     Parameters:
         state (string): The name of the state we are analyzing
@@ -746,6 +761,10 @@ def get_theo_rho(state, chi):
     return rho
 
 def main(filepath):
+    """
+    If a filepath is provided as an argument when running this file, use the file content
+    as input.
+    """
     try:
         with open(filepath, 'r') as file:
             content = []
@@ -784,8 +803,7 @@ if __name__ == '__main__':
             inputs = main(file_path)
             DATA_PATH, TRIAL, FIG_TITLE, STATE_ID, names, probs, chis = inputs
     else:
-        # set path & other user input variables
-        current_path = dirname(abspath(__file__))
+        # prompt user to input variables
         DATA_PATH = input("Input the path to the lowest-level directory that your data file is in: ")
         TRIAL = int(input("Trial number: "))
         FIG_TITLE = input("Input the desired title for the generated figure: ")
@@ -818,12 +836,19 @@ if __name__ == '__main__':
     # Obtain the density matrix for each state
     for chi in chis:
         if "mix" in STATE_ID:
-            rho_actuals.append(gen_mixed_state(names, probs, chi))
+            rho_actuals.append(get_mixed_rho(names, probs, chi))
         else:
-            rho_actuals.append(get_theo_rho(STATE_ID, chi))
+            rho_actuals.append(get_pure_rho(STATE_ID, chi))
         filenames.append(f"rho_({STATE_ID}-{np.rad2deg(chi)}-{TRIAL}).npy")
 
     # analyze rho files
+    # check if we have a file for chi=90 to use for purity calculations
+    if np.pi/2 in chis:
+        filename = f"rho_({STATE_ID}-90.0-{TRIAL}).npy"
+        expt_rho = np.load(join(DATA_PATH, filename), allow_pickle=True)[0]
+        STATE_PURITY = get_purity(expt_rho, real_chi(expt_rho))
+    else: # if we don't have chi=90 as reference, we'll calculate purity for each chi
+        STATE_PURITY = None
     analyze_rhos(filenames, rho_actuals, id=STATE_ID)
     if len(filenames) > 1:
         make_plots_E0(f'analysis_{STATE_ID}.csv', FIG_TITLE)
