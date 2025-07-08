@@ -13,16 +13,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    TRIAL = 3
+    TRIAL = 1
     chis = np.linspace(0.001, np.pi/2, 6)
-    directory = 'summer2024_paper_states/hrvl_hdva_mix_summer24'
+    directory = 'ria_ha_negpi_3_vd_trial1'
     all_phases = False
 
     fig, ax = plt.subplots()
 
     # get each phase
     for chi in chis:
-        filename =f"rho_(HRVL_HDVA_mix-{np.rad2deg(chi)}-{TRIAL}).npy"
+        filename =f"rho_(ha_negpi_3_vd-{np.rad2deg(chi)}-{TRIAL}).npy"
         data = np.load(f'{directory}/{filename}', allow_pickle=True)
         rho = data[0]
 
