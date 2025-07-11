@@ -13,9 +13,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    TRIAL = 1
+    TRIAL = 2
     chis = np.linspace(0.001, np.pi/2, 6)
-    directory = 'ria_ha_negpi_3_vd_trial1'
+    directory = 'ria_ha_negpi_3_vd_trial2'
     all_phases = False
 
     fig, ax = plt.subplots()

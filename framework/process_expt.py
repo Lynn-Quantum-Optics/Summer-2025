@@ -753,8 +753,14 @@ def get_pure_rho(state, chi):
     if state == 'cosHV_minusisinVH':
         phi = np.cos(chi/2) * np.kron(H, V) - 1j * np.sin(chi/2) * np.kron(V, H)
 
-    if state == 'ha_negpi_3_vd':
-        phi = np.sin(chi/2) * np.kron(H, A) + np.exp(-1j * np.pi/3) * np.cos(chi/2) * np.kron(V, D)
+    if state == 'ha_negpi_3_vd_target':
+        phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, D)
+    
+    if state == 'ha_negpi_3_vd_exp':
+        theta = np.arctan(np.sqrt(.24/.26))
+        D = np.cos(theta) * H + np.sin(theta) * V
+        A = np.sin(theta) * H - np.cos(theta) * V
+        phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, D)
     
     # create rho and return it
     rho = phi @ phi.conj().T
