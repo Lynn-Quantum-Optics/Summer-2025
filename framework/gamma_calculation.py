@@ -13,19 +13,19 @@ from uncertainties import ufloat
 
 if __name__ == '__main__':
     # first deg measurement, last deg measurement, # of steps, # of measurements per step, time per measurement
-    DATE = "07032025" #please update
+    DATE = "07142025" #please update
     STATE = "ha_negpi_3_vd"
-    chis = np.linspace(0.001, np.pi/2, 6)
+    chis = np.linspace(0.001, np.pi/2, 6)[1:]
     gammas = []
-    
+    TRIAL = 3
     fileName = f"gamma_data_from_tomo"
-    directory = f'ria_ha_negpi_3_vd_trial1'
+    directory = f'ria_ha_negpi_3_vd_trial{TRIAL}'
 
     for chi in chis:
         chi_act = np.rad2deg(chi)
         #bases for hdva state: 'DR', 'AR', 'DL', 'AL', 'RR', 'LL', 'RL', 'LR'
         #bases for hrvl state: 'DD', 'DA', 'AD', 'AA', 'RD', 'RA', 'LD', 'LA'
-        datas = Manager.load_data(f'{directory}/tomo_data_ha_negpi_3_vd_{chi_act}_{DATE}_1.csv')
+        datas = Manager.load_data(f'{directory}/tomo_data_ha_negpi_3_vd_{chi_act}_{DATE}_{TRIAL}.csv')
 
         datas = datas.set_index("note")
 
