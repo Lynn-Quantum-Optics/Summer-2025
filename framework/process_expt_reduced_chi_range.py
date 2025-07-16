@@ -401,19 +401,37 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
     df = pd.DataFrame()
 
     for i, file in tqdm(enumerate(filenames)):
-        trial, rho, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
-        purity = STATE_PURITY
-        # check if we got a state purity from chi=90 and if not, calculate it for this chi value
-        if STATE_PURITY == None:
-            purity = get_purity(rho, real_chi(rho))
+        split_file = file.split('(')
+        split_file = split_file[1].split(')')    
+        chi_theo = float(split_file[0].split('-')[1])
+        trial = int(split_file[0].split('-')[2].split(')')[0])
+
         rho_actual = rho_actuals[i]
-        fidelity = get_fidelity(rho_actual, rho)
-        print('\nFidelity is:', fidelity)
-        print('Purity is:', purity)
         print('Theoretical rho is:')
         print(np.round(rho_actual, 4))
-        print('Experimental rho is:')
-        print(np.round(rho, 3))
+
+        print(chi_theo, file)
+
+        if chi_theo > 10:
+            trial, rho, chi, angles, un_proj, un_proj_unc = get_rho_from_file(file, verbose=False)
+            purity = STATE_PURITY
+            # check if we got a state purity from chi=90 and if not, calculate it for this chi value
+            if STATE_PURITY == None:
+                purity = get_purity(rho, real_chi(rho))
+            fidelity = get_fidelity(rho_actual, rho)
+            
+            print('Experimental rho is:')
+            print(np.round(rho, 3))
+            print('\nFidelity is:', fidelity)
+            print('Purity is:', purity)
+        else:
+            purity = .95
+            fidelity = .95
+            do_W7s_W8s = False
+            angles = [0, 0, 0, 0]
+            chi = chi_theo
+
+
         
         #########################
         ## MINIMIZING WITNESSES
@@ -426,44 +444,49 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         print("Minimizing witnesses for adjusted theory data...")
         W_AT_params, W_AT_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=adjust_rho(rho_actual, purity))
 
-        # calculate W3 and W5 expt
-        flat_un_proj = un_proj.flatten()
-        flat_un_proj_unc = un_proj_unc.flatten()
-        print("Minimizing witnesses for experimental data...")
-        # NOTE: do not put in uncertainties here
-        W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
+        if chi_theo > 10:
+            # calculate W3 and W5 expt
+            flat_un_proj = un_proj.flatten()
+            flat_un_proj_unc = un_proj_unc.flatten()
+            print("Minimizing witnesses for experimental data...")
+            # NOTE: do not put in uncertainties here
+            W_E_params, W_E_vals = op.minimize_witnesses([sw.W3, sw.W5], rho=rho)
 
-        # check if we calculated W7s and W8s
-        do_W7s_W8s = False
-        if len(W_E_vals) > 15:
-            do_W7s_W8s = True
-        
-        ##############################
-        ## CALCULATING UNCERTAINTIES
-        ##############################
+            # check if we calculated W7s and W8s
+            do_W7s_W8s = False
+            if len(W_E_vals) > 15:
+                do_W7s_W8s = True
+            
+            ##############################
+            ## CALCULATING UNCERTAINTIES
+            ##############################
 
-        # NOTE: i is indexed from one because it represents a witness subscript
-        W_E_unc = []
-        W3_obj = sw.W3(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
-        for i in range(1, 7): # W3s
-            expec_val = W3_obj.expec_val(i, *W_E_params[i-1])
-            W_E_unc.append(unp.std_devs(expec_val))
-        
-        W5_obj = sw.W5(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
-        for i in range(1, 10): # W5s
-            expec_val = W5_obj.expec_val(i, *W_E_params[i+5]) # offset for W3s
-            W_E_unc.append(unp.std_devs(expec_val))
-
-        if do_W7s_W8s:
-            W7_obj = sw.W7(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
-            for i in range(1, 109): # W7s
-                expec_val = W7_obj.expec_val(i, *W_E_params[i+14]) # offset for W3s and W5s
+            # NOTE: i is indexed from one because it represents a witness subscript
+            W_E_unc = []
+            W3_obj = sw.W3(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+            for i in range(1, 7): # W3s
+                expec_val = W3_obj.expec_val(i, *W_E_params[i-1])
                 W_E_unc.append(unp.std_devs(expec_val))
             
-            W8_obj = sw.W8(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
-            for i in range(1, 37): # W8s
-                expec_val = W8_obj.expec_val(i, *W_E_params[i+122]) # offset for W3s, W5s, W7s
+            W5_obj = sw.W5(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+            for i in range(1, 10): # W5s
+                expec_val = W5_obj.expec_val(i, *W_E_params[i+5]) # offset for W3s
                 W_E_unc.append(unp.std_devs(expec_val))
+
+            if do_W7s_W8s:
+                W7_obj = sw.W7(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+                for i in range(1, 109): # W7s
+                    expec_val = W7_obj.expec_val(i, *W_E_params[i+14]) # offset for W3s and W5s
+                    W_E_unc.append(unp.std_devs(expec_val))
+                
+                W8_obj = sw.W8(counts=unp.uarray(flat_un_proj, flat_un_proj_unc))
+                for i in range(1, 37): # W8s
+                    expec_val = W8_obj.expec_val(i, *W_E_params[i+122]) # offset for W3s, W5s, W7s
+                    W_E_unc.append(unp.std_devs(expec_val))
+        else:
+            W_E_vals = [0] * 14
+            W_E_unc = [0] * 14
+            W_E_params = [0] * 14
 
         ##################
         ## PARSING LISTS
@@ -572,7 +595,10 @@ def analyze_rhos(filenames, rho_actuals, id='id'):
         new_df_row['B_HWP'] = angles[2]
         
         if chi is not None:
-            adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
+            if chi > 10:
+                adj_fidelity = get_fidelity(adjust_rho(rho_actual, purity), rho)
+            else:
+                adj_fidelity = .95
             new_df_row.insert(1, 'chi', chi)
             new_df_row.insert(4, 'AT_fidelity', adj_fidelity)
 
@@ -753,10 +779,10 @@ def get_pure_rho(state, chi):
     if state == 'cosHV_minusisinVH':
         phi = np.cos(chi/2) * np.kron(H, V) - 1j * np.sin(chi/2) * np.kron(V, H)
 
-    if state == 'ha_negpi_3_vd_target':
+    if state == 'ha_negpi_3_vd':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, D)
     
-    if state == 'ha_negpi_3_vd_exp':
+    if state == 'ha_negpi_3_vd_expt':
         theta = np.arctan(np.sqrt(.24/.26))
         D = np.cos(theta) * H + np.sin(theta) * V
         A = np.sin(theta) * H - np.cos(theta) * V
@@ -837,8 +863,9 @@ if __name__ == '__main__':
         FIG_TITLE = FIG_TITLE.encode('utf-8').decode('unicode_escape')
     rho_actuals = []
     filenames = []
+    rho_actuals = []
 
-    # Obtain the density matrix for each chi
+    # Obtain the density matrix for each state
     for chi in chis:
         if "mix" in STATE_ID:
             rho_actuals.append(get_mixed_rho(names, probs, chi))

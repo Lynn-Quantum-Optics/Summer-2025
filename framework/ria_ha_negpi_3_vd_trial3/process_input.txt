@@ -1,0 +1,5 @@
+ria_ha_negpi_3_vd_trial3
+3
+Min. Witness Values for $\cos(\\frac{\chi}{2}) |HA' \u27E9 + \sin(\\frac{\chi}{2}) e^{\\frac{-i\pi}{3}} |VD' \u27E9$
+ha_negpi_3_vd
+y
