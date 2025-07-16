@@ -828,9 +828,8 @@ if __name__ == '__main__':
         FIG_TITLE = FIG_TITLE.encode('utf-8').decode('unicode_escape')
     rho_actuals = []
     filenames = []
-    rho_actuals = []
 
-    # Obtain the density matrix for each state
+    # Obtain the density matrix for each chi
     for chi in chis:
         if "mix" in STATE_ID:
             rho_actuals.append(get_mixed_rho(names, probs, chi))
