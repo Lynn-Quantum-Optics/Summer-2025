@@ -127,12 +127,14 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     def optimize(W_val, witness_idx, params, bounds):
         """
-        Generic minimization loop that works for any number of minimization parameters
+        Uses Scipy's minimization to find the minimum value of a witness expectation value by
+        varying its parameters within given bounds.
 
         Parameters:
             W_val:                a function to get expectation value for one witness of a certain class
             witness_idx:          iterator that keeps track of which witness we are minimizing
             params:               the witness parameters to be minimized (i.e. theta, alpha, beta)
+            bounds:               constraints on the minimization parameters
         """
 
         def loss(params):
