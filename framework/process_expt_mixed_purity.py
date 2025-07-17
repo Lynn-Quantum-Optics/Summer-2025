@@ -782,11 +782,13 @@ def main(filepath):
             offset = 0
             names = []
             probs = []
+            unmixed_trials = []
             if "mix" in state_id:
                 names = content[4].split(" ")
                 probs = list(map(float, content[5].split(" ")))
                 # add an offset to the line indices
                 offset = 2
+                unmixed_trials = list(map(int, content[7].split(" ")))
 
             chis_range = content[4 + offset]
             if chis_range.lower() == "y":
@@ -797,7 +799,7 @@ def main(filepath):
                     chis = [np.pi/2]
                 else:
                     chis = [eval(chis_str)]
-            return data_path, trial, fig_title, state_id, names, probs, chis
+            return data_path, trial, fig_title, state_id, names, probs, chis, unmixed_trials
 
     except FileNotFoundError:
         print(f"Error: File '{filepath}' not found.")
@@ -807,7 +809,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
             file_path = sys.argv[1]
             inputs = main(file_path)
-            DATA_PATH, TRIAL, FIG_TITLE, STATE_ID, names, probs, chis = inputs
+            DATA_PATH, TRIAL, FIG_TITLE, STATE_ID, names, probs, chis, unmixed_trials = inputs
     else:
         # prompt user to input variables
         DATA_PATH = input("Input the path to the lowest-level directory that your data file is in: ")
@@ -820,6 +822,8 @@ if __name__ == '__main__':
             names = mixed_states.split(" ")
             probabilities = input("Input the probabilities of each respective state, separated by spaces: ")
             probs = list(map(float, probabilities.split(" ")))
+            unmixed_num = input("Input the trials of each unmixed data set, separated by spaces: ")
+            unmixed_trials = list(map(int, unmixed_num.split(" ")))
 
         chis_range = input("Are you analyzing the full range of chi values? [y/n]: ")
         if chis_range.lower() == "y":
@@ -850,8 +854,8 @@ if __name__ == '__main__':
     # check if we have a file for chi=90 to use for purity calculations
     if np.pi/2 in chis:
         if "mix" in STATE_ID:
-            filename1 = f"rho_({STATE_ID}-90.0-1).npy"
-            filename2 = f"rho_({STATE_ID}-90.0-2).npy"
+            filename1 = f"rho_({STATE_ID}-90.0-{unmixed_trials[0]}).npy"
+            filename2 = f"rho_({STATE_ID}-90.0-{unmixed_trials[1]}).npy"
             expt_rho1 = np.load(join(DATA_PATH, filename1), allow_pickle=True)[0]
             expt_rho2 = np.load(join(DATA_PATH, filename2), allow_pickle=True)[0]
             STATE_PURITY1 = get_purity(expt_rho1, real_chi(expt_rho1))
