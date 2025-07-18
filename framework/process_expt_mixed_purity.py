@@ -1,6 +1,6 @@
 """
 Authors: Lev G., Ria H., Isabel G.
-Last updated: 6/24/2025
+Last updated: 6/17/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
@@ -14,6 +14,11 @@ Check the data folder for a file called process_input.txt. Make sure to include 
 the file path.
 
 This file can be run on data files with the naming format "rho_(state_name-chi-trial).npy".
+
+This file is currently the only file that correctly handles mixed-state purity calculations and is meant
+as a "quick fix" while we decide how to handle mixed-state naming conventions and mixing. When processing 
+a mixed state, this file assumes unmixed data files have the same naming format as mixed files, but with 
+user-specified trials (on line 8 of the text file or inputted when prompted).
 """
 
 print("initializing...")

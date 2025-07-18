@@ -1,6 +1,6 @@
 """
 Authors: Lev G., Ria H., Isabel G.
-Last updated: 6/24/2025
+Last updated: 7/17/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
@@ -14,6 +14,10 @@ Check the data folder for a file called process_input.txt. Make sure to include 
 the file path.
 
 This file can be run on data files with the naming format "rho_(state_name-chi-trial).npy".
+
+This file is currently the only file that correctly handles data sets without the experimental chi~0 data
+while still plotting this point on the theoretical curves. It is meant as a "quick fix" while we decide how
+to handle data sets in which we want different ranges of theoretical vs experimental chis.
 """
 
 print("initializing...")
