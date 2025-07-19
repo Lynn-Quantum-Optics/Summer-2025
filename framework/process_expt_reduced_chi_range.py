@@ -796,7 +796,7 @@ def get_pure_rho(state, chi):
         theta = np.arctan(np.sqrt(.244/.26))
         D = np.cos(theta) * H + np.sin(theta) * V
         A = np.sin(theta) * H - np.cos(theta) * V
-        phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * .99) * np.sin(chi/2) * np.kron(V, D)
+        phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j*.99) * np.sin(chi/2) * np.kron(V, D)
     
     # create rho and return it
     rho = phi @ phi.conj().T
