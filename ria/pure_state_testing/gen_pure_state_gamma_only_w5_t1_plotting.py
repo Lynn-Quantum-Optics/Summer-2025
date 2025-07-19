@@ -456,7 +456,7 @@ def get_theo_rho(state, chi, gamma):
     basis1_perp = splitState[1][0]
     basis2_perp = splitState[1][1]
     
-    phi = np.sqrt(chi/2) * np.kron(eval(basis1), eval(basis2)) + np.exp(1j*gamma) * np.sqrt(chi/2) * np.kron(eval(basis1_perp), eval(basis2_perp))
+    phi = np.cos(chi/2) * np.kron(eval(basis1), eval(basis2)) + np.exp(1j*gamma) * np.sin(chi/2) * np.kron(eval(basis1_perp), eval(basis2_perp))
 
     # create rho and return it
     rho = phi @ phi.conj().T
