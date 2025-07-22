@@ -810,7 +810,7 @@ class W8(W5):
     ######################################################
     
     ## Triplet 1: Rotate particle 1 on y then x ##
-    def W8_1(self, theta, alpha, beta, for_w7=False):
+    def W8_1(self, theta, alpha, beta):
         """
         First W8 witness
 
@@ -818,65 +818,59 @@ class W8(W5):
         theta             - free parameter used in W3
         alpha             - first rotation angle (for W5)
         beta              - second rotation angle (to go from W5 to W8)
-        for_w7 (optional) - if true, don't check the counts assuming 
-                            we're using experimental data
-
-        NOTE: We may calculate W8 in order to perform another rotation to
-              get a W7 witness. In this case, we don't want to check the counts
-              because using a W7 requires less photon counts than a W8
         """
         # W5 witness to rotate from
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=1)
+        if self.counts is not None:
+            self.check_counts(triplet=1)
 
         rotation = np.kron(R_x(beta), IDENTITY)
         return op.rotate_m(w5_7, rotation)
     
-    def W8_2(self, theta, alpha, beta, for_w7=False):
+    def W8_2(self, theta, alpha, beta):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=1)
+        if self.counts is not None:
+            self.check_counts(triplet=1)
         
         rotation = np.kron(R_x(beta), IDENTITY)
         return op.rotate_m(w5_8, rotation)
     
-    def W8_3(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_3(self, theta, alpha, beta, gamma):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=1)
+        if self.counts is not None:
+            self.check_counts(triplet=1)
         
         rotation = np.kron(R_x(gamma), IDENTITY)
         return op.rotate_m(w5_9, rotation)
     
 
     ## Triplet 2: Rotate about x, then rotate particle 2 about y ##
-    def W8_4(self, theta, alpha, beta, for_w7=False):
+    def W8_4(self, theta, alpha, beta):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=2)
+        if self.counts is not None:
+            self.check_counts(triplet=2)
         
         rotation = np.kron(IDENTITY, R_y(beta))
         return op.rotate_m(w5_4, rotation)
     
-    def W8_5(self, theta, alpha, beta, for_w7=False):
+    def W8_5(self, theta, alpha, beta):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=2)
+        if self.counts is not None:
+            self.check_counts(triplet=2)
         
         rotation = np.kron(IDENTITY, R_y(beta))
         return op.rotate_m(w5_5, rotation)
     
-    def W8_6(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_6(self, theta, alpha, beta, gamma):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=2)
+        if self.counts is not None:
+            self.check_counts(triplet=2)
         
         rotation = np.kron(IDENTITY, R_y(gamma))
         return op.rotate_m(w5_6, rotation)
@@ -887,58 +881,58 @@ class W8(W5):
     #############################################
 
     ## Triplet 3: Rotate particle 1 on x then y ##
-    def W8_7(self, theta, alpha, beta, for_w7=False):
+    def W8_7(self, theta, alpha, beta):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=3)
+        if self.counts is not None:
+            self.check_counts(triplet=3)
 
         rotation = np.kron(R_y(beta), IDENTITY)
         return op.rotate_m(w5_4, rotation)
     
-    def W8_8(self, theta, alpha, beta, for_w7=False):
+    def W8_8(self, theta, alpha, beta):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=3)
+        if self.counts is not None:
+            self.check_counts(triplet=3)
 
         rotation = np.kron(R_y(beta), IDENTITY)
         return op.rotate_m(w5_5, rotation)
     
-    def W8_9(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_9(self, theta, alpha, beta, gamma):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=3)
+        if self.counts is not None:
+            self.check_counts(triplet=3)
 
         rotation = np.kron(R_y(gamma), IDENTITY)
         return op.rotate_m(w5_6, rotation)
     
 
     ## Triplet 4: Rotate about y, then rotate particle 2 about x ##
-    def W8_10(self, theta, alpha, beta, for_w7=False):
+    def W8_10(self, theta, alpha, beta):
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=4)
+        if self.counts is not None:
+            self.check_counts(triplet=4)
 
         rotation = np.kron(IDENTITY, R_x(beta))
         return op.rotate_m(w5_7, rotation)
     
-    def W8_11(self, theta, alpha, beta, for_w7=False):
+    def W8_11(self, theta, alpha, beta):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=4)
+        if self.counts is not None:
+            self.check_counts(triplet=4)
 
         rotation = np.kron(IDENTITY, R_x(beta))
         return op.rotate_m(w5_8, rotation)
     
-    def W8_12(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_12(self, theta, alpha, beta, gamma):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=4)
+        if self.counts is not None:
+            self.check_counts(triplet=4)
 
         rotation = np.kron(IDENTITY, R_x(gamma))
         return op.rotate_m(w5_9, rotation)
@@ -948,58 +942,58 @@ class W8(W5):
     #############################################
 
     ## Triplet 5: Rotate particle 1 by z then x ##
-    def W8_13(self, theta, alpha, beta, for_w7=False):
+    def W8_13(self, theta, alpha, beta):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=5)
+        if self.counts is not None:
+            self.check_counts(triplet=5)
 
         rotation = np.kron(R_x(beta), IDENTITY)
         return op.rotate_m(w5_1, rotation)
     
-    def W8_14(self, theta, alpha, beta, for_w7=False):
+    def W8_14(self, theta, alpha, beta):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=5)
+        if self.counts is not None:
+            self.check_counts(triplet=5)
 
         rotation = np.kron(R_x(beta), IDENTITY)
         return op.rotate_m(w5_2, rotation)
     
-    def W8_15(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_15(self, theta, alpha, beta, gamma):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=5)
+        if self.counts is not None:
+            self.check_counts(triplet=5)
 
         rotation = np.kron(R_x(gamma), IDENTITY)
         return op.rotate_m(w5_3, rotation)
     
 
     ## Triplet 6: Rotate about x, then rotate particle 2 by z ##
-    def W8_16(self, theta, alpha, beta, for_w7=False):
+    def W8_16(self, theta, alpha, beta):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=6)
+        if self.counts is not None:
+            self.check_counts(triplet=6)
 
         rotation = np.kron(IDENTITY, R_z(beta))
         return op.rotate_m(w5_4, rotation)
     
-    def W8_17(self, theta, alpha, beta, for_w7=False):
+    def W8_17(self, theta, alpha, beta):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=6)
+        if self.counts is not None:
+            self.check_counts(triplet=6)
 
         rotation = np.kron(IDENTITY, R_z(beta))
         return op.rotate_m(w5_5, rotation)
     
-    def W8_18(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_18(self, theta, alpha, beta, gamma):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=6)
+        if self.counts is not None:
+            self.check_counts(triplet=6)
 
         rotation = np.kron(IDENTITY, R_z(gamma))
         return op.rotate_m(w5_6, rotation)
@@ -1010,58 +1004,58 @@ class W8(W5):
     #############################################
 
     ## Triplet 7: Rotate particle 1 by x then z ##
-    def W8_19(self, theta, alpha, beta, for_w7=False):
+    def W8_19(self, theta, alpha, beta):
         w5_4 = self.W5_4(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=7)
+        if self.counts is not None:
+            self.check_counts(triplet=7)
 
         rotation = np.kron(R_z(beta), IDENTITY)
         return op.rotate_m(w5_4, rotation)
     
-    def W8_20(self, theta, alpha, beta, for_w7=False):
+    def W8_20(self, theta, alpha, beta):
         w5_5 = self.W5_5(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=7)
+        if self.counts is not None:
+            self.check_counts(triplet=7)
 
         rotation = np.kron(R_z(beta), IDENTITY)
         return op.rotate_m(w5_5, rotation)
     
-    def W8_21(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_21(self, theta, alpha, beta, gamma):
         w5_6 = self.W5_6(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=7)
+        if self.counts is not None:
+            self.check_counts(triplet=7)
 
         rotation = np.kron(R_z(gamma), IDENTITY)
         return op.rotate_m(w5_6, rotation)
     
 
     ## Triplet 8: Rotate about z, then rotate particle 2 by x ##
-    def W8_22(self, theta, alpha, beta, for_w7=False):
+    def W8_22(self, theta, alpha, beta):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=8)
+        if self.counts is not None:
+            self.check_counts(triplet=8)
 
         rotation = np.kron(IDENTITY, R_x(beta))
         return op.rotate_m(w5_1, rotation)
     
-    def W8_23(self, theta, alpha, beta, for_w7=False):
+    def W8_23(self, theta, alpha, beta):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=8)
+        if self.counts is not None:
+            self.check_counts(triplet=8)
 
         rotation = np.kron(IDENTITY, R_x(beta))
         return op.rotate_m(w5_2, rotation)
     
-    def W8_24(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_24(self, theta, alpha, beta, gamma):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=8)
+        if self.counts is not None:
+            self.check_counts(triplet=8)
 
         rotation = np.kron(IDENTITY, R_x(gamma))
         return op.rotate_m(w5_3, rotation)
@@ -1072,58 +1066,58 @@ class W8(W5):
     #############################################
 
     ## Triplet 9: Rotate particle 1 by z then y ##
-    def W8_25(self, theta, alpha, beta, for_w7=False):
+    def W8_25(self, theta, alpha, beta):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=9)
+        if self.counts is not None:
+            self.check_counts(triplet=9)
 
         rotation = np.kron(R_y(beta), IDENTITY)
         return op.rotate_m(w5_1, rotation)
     
-    def W8_26(self, theta, alpha, beta, for_w7=False):
+    def W8_26(self, theta, alpha, beta):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=9)
+        if self.counts is not None:
+            self.check_counts(triplet=9)
 
         rotation = np.kron(R_y(beta), IDENTITY)
         return op.rotate_m(w5_2, rotation)
     
-    def W8_27(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_27(self, theta, alpha, beta, gamma):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=9)
+        if self.counts is not None:
+            self.check_counts(triplet=9)
 
         rotation = np.kron(R_y(gamma), IDENTITY)
         return op.rotate_m(w5_3, rotation)
     
 
     ## Triplet 10: Rotate about y, then rotate particle 2 by z ##
-    def W8_28(self, theta, alpha, beta, for_w7=False):
+    def W8_28(self, theta, alpha, beta):
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=10)
+        if self.counts is not None:
+            self.check_counts(triplet=10)
 
         rotation = np.kron(IDENTITY, R_z(beta))
         return op.rotate_m(w5_7, rotation)
     
-    def W8_29(self, theta, alpha, beta, for_w7=False):
+    def W8_29(self, theta, alpha, beta):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=10)
+        if self.counts is not None:
+            self.check_counts(triplet=10)
 
         rotation = np.kron(IDENTITY, R_z(beta))
         return op.rotate_m(w5_8, rotation)
     
-    def W8_30(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_30(self, theta, alpha, beta, gamma):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=10)
+        if self.counts is not None:
+            self.check_counts(triplet=10)
 
         rotation = np.kron(IDENTITY, R_z(gamma))
         return op.rotate_m(w5_9, rotation)
@@ -1134,58 +1128,58 @@ class W8(W5):
     #############################################
 
     ## Triplet 11: Rotate particle 1 by y then z ##
-    def W8_31(self, theta, alpha, beta, for_w7=False):
+    def W8_31(self, theta, alpha, beta):
         w5_7 = self.W5_7(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=11)
+        if self.counts is not None:
+            self.check_counts(triplet=11)
 
         rotation = np.kron(R_z(beta), IDENTITY)
         return op.rotate_m(w5_7, rotation)
     
-    def W8_32(self, theta, alpha, beta, for_w7=False):
+    def W8_32(self, theta, alpha, beta):
         w5_8 = self.W5_8(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=11)
+        if self.counts is not None:
+            self.check_counts(triplet=11)
 
         rotation = np.kron(R_z(beta), IDENTITY)
         return op.rotate_m(w5_8, rotation)
     
-    def W8_33(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_33(self, theta, alpha, beta, gamma):
         w5_9 = self.W5_9(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=11)
+        if self.counts is not None:
+            self.check_counts(triplet=11)
 
         rotation = np.kron(R_z(gamma), IDENTITY)
         return op.rotate_m(w5_9, rotation)
     
 
     ## Triplet 12: Rotate about z, then rotate particle 2 by y ##
-    def W8_34(self, theta, alpha, beta, for_w7=False):
+    def W8_34(self, theta, alpha, beta):
         w5_1 = self.W5_1(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=12)
+        if self.counts is not None:
+            self.check_counts(triplet=12)
 
         rotation = np.kron(IDENTITY, R_y(beta))
         return op.rotate_m(w5_1, rotation)
     
-    def W8_35(self, theta, alpha, beta, for_w7=False):
+    def W8_35(self, theta, alpha, beta):
         w5_2 = self.W5_2(theta, alpha)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=12)
+        if self.counts is not None:
+            self.check_counts(triplet=12)
 
         rotation = np.kron(IDENTITY, R_y(beta))
         return op.rotate_m(w5_2, rotation)
     
-    def W8_36(self, theta, alpha, beta, gamma, for_w7=False):
+    def W8_36(self, theta, alpha, beta, gamma):
         w5_3 = self.W5_3(theta, alpha, beta)
 
-        if self.counts is not None and not for_w7:
-            W8.check_counts(triplet=12)
+        if self.counts is not None:
+            self.check_counts(triplet=12)
 
         rotation = np.kron(IDENTITY, R_y(gamma))
         return op.rotate_m(w5_3, rotation)
@@ -1303,1076 +1297,6 @@ class W8(W5):
 
         else:
             assert False, "Invalid triplet specified"
-
-
-class W7(W8):
-    """
-    W7 witnesses, calculated with Paco's rotations (section 4.2 of Navarro thesis).
-    These use local measurements on 7 Pauli bases.
-
-    Attributes:
-    rho (optional)    - the density matrix for the photon state
-    counts (optional) - np array of photon counts and uncertainties from experimental data
-        
-    NOTE: this class inherits from W8, so all methods in that class can be used here, and all notes apply
-    """
-    def __init__(self, rho=None, counts=None):
-        super().__init__(rho=rho, counts=counts)
-
-
-    #####################################
-    ## WITNESS HELPER FUNCTIONS
-    #####################################
-    def get_angle(theta, alpha, beta, gamma=None):
-        """
-        Extracts coefficients from given parameters to calculate the
-        angle needed for a deletion rotation (see Navarro thesis section 4.2.1)
-        """
-        # deletion rotation angle (defined as gamma in Paco's thesis)
-        # TODO: make sure this is being calculated correctly. Am I extracting coefficients?
-        delta = np.arctan(-1/np.tan(alpha))
-
-        return delta
-
-
-    def make_witness(self, w, rotation, set):
-        """
-        Helper function to create W7 witnesses using a deletion rotation
-        from a W8 witness
-
-        Params:
-        w        - the W8 witness to rotate from
-        rotation - the deletion rotation to perform on w
-        set      - the set (1-9) that the W7 witness belongs to (for count checking)
-        """
-        # when given, check that all necessary counts are given
-        if self.counts:
-            W7.check_counts(set=set)
-
-        return op.rotate_m(w, rotation)
-
-    
-    #############################################
-    ## SET 1 (W7_{1-12}): EXCLUDES XY & YX
-    #############################################
-
-    ## Triplet 1: deletion rotation about y on particle 2 from first W8 triplet ##
-    def W7_1(self, theta, alpha, beta):
-        """
-        First W7 witness
-
-        Params:
-        theta - free parameter used in W3
-        alpha - first rotation angle (for W5)
-        beta  - second rotation angle (for W8)
-        """
-        # deletion rotation angle (defined as gamma in Paco's thesis)
-        delta = self.get_angle(theta, alpha, beta)
-
-        # W8 witness to rotate from
-        w8 = self.W8_1(theta, alpha, beta, for_w7=True)
-
-        # the deletion rotation itself
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        # make witness
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_2(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_2(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_3(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_3(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 1)
-    
-
-    ## Triplet 2: deletion rotation by x on particle 1 from 2nd W8 triplet ##
-    def W7_4(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_4(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_5(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_5(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_6(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_6(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 1)
-    
-
-    ## Triplet 3: rotate by x on particle 2 from 3rd W8 triplet ##
-    def W7_7(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_7(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-        
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_8(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_8(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_9(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_9(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 1)
-    
-    ## Triplet 4: rotate by y on particle 1 from 4th W8 triplet ##
-    def W7_10(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_10(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_11(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_11(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 1)
-    
-    def W7_12(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_12(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 1)
-    
-
-    #####################################
-    ## SET 2: EXCLUDES XY & YZ
-    #####################################
-
-    ## Triplets 5-6: rotate by y on particle 2 from 1st & 2nd W8 triplets, respectively ##
-    def W7_13(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_1(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_14(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_2(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_15(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_3(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_16(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_4(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_17(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_5(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_18(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_6(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 2)
-    
-    
-    ## Triplets 7-8: rotate by y on particle 1 from 9th & 10th W8 triplets ##
-    def W7_19(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_25(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_20(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_26(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_21(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_27(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_22(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_28(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-        
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_23(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_29(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 2)
-    
-    def W7_24(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_30(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 2)
-    
-    
-    #####################################
-    ## SET 3: EXCLUDES XY & ZX
-    #####################################
-
-    ## Triplets 9-10: rotate by x on particle 1 from 1st & 2nd W8 triplets ##
-    def W7_25(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_1(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_26(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_2(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_27(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_3(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_28(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_4(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_29(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_5(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_30(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_6(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-
-    ## Triplets 11-12: rotate by x on particle 2 from 7th & 8th W8 triplets ##
-    def W7_31(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_19(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_32(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_20(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_33(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_21(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_34(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_22(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_35(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_23(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-    def W7_36(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_24(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 3)
-    
-
-    #####################################
-    ## SET 4: EXCLUDES XZ & ZX
-    #####################################
-
-    ## Triplets 13-14: rotate by x on particle 1 from 5th & 6th W8 triplets ##
-    def W7_37(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_13(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_38(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_14(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_39(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_15(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_40(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_16(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_41(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_17(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_42(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_18(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 4)
-    
-
-    ## Triplets 15-16: rotate by x on particle 2 from 7th & 8th W8 triplets ##
-    # TODO: THIS IS THE SAME AS TRIPLETS 11-12, CHECK IN W PACO TO MAKE SURE THIS IS RIGHT
-    def W7_43(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_19(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_44(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_20(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_45(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_21(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_46(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_22(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_47(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_23(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 4)
-    
-    def W7_48(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_24(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 4)
-    
-
-    #####################################
-    ## SET 5: EXCLUDES XZ & ZY
-    #####################################
-
-    ## Triplets 17-18: rotate by z on particle 2 from 5th & 6th W8 triplets ##
-    def W7_49(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_13(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_50(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_14(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_51(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_15(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_52(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_16(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_53(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_17(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_54(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_18(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 5)
-
-
-    ## Triplets 19-20: rotate by z on particle 1 from 11th & 12th W8 triplets ##
-    def W7_55(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_31(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_56(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_32(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_57(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_33(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_58(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_34(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_59(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_35(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 5)
-    
-    def W7_60(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_36(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 5)
-    
-
-    #####################################
-    ## SET 6: EXCLUDES XZ & YX
-    #####################################
-
-    ## Triplets 21-22: rotate by x on particle 1 from 5th & 6th W8 triplets ##
-    # TODO: THIS IS THE SAME AS TRIPLETS 13-14, CHECK IN W PACO TO MAKE SURE THIS IS RIGHT
-    def W7_61(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_13(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_62(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_14(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_63(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_15(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_64(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_16(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_65(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_17(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_66(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_18(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_x(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 6)
-    
-
-    ## Triplets 23-24: rotate by x on particle 2 from 3rd & 4th W8 triplets ##
-    def W7_67(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_7(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_68(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_8(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_69(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_9(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_70(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_10(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_71(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_11(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-
-        return self.make_witness(w8, rotation, 6)
-    
-    def W7_72(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_12(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_x(delta))
-        
-        return self.make_witness(w8, rotation, 6)
-    
-
-    #####################################
-    ## SET 7: EXCLUDES YX & ZY
-    #####################################
-
-    ## Triplets 25-26: rotate by y on particle 1 from 3rd & 4th W8 triplets ##
-    def W7_73(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_7(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_74(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_8(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_75(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_9(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_76(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_10(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_77(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_11(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_78(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_12(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 7)
-    
-
-    ## Triplets 27-28: rotate by y on particle 2 from 11th & 12th W8 triplets ##
-    def W7_79(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_31(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_80(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_32(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_81(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_33(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_82(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_34(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_83(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_35(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 7)
-    
-    def W7_84(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_36(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_y(delta))
-
-        return self.make_witness(w8, rotation, 7)
-
-    
-    #####################################
-    ## SET 8: EXCLUDES YZ & ZY
-    #####################################
-
-    ## Triplets 29-30: rotate by y on particle 1 from 9th & 10th W8 triplets ##
-    # TODO: THIS IS THE SAME AS TRIPLETS 7-8, CHECK IN W PACO TO MAKE SURE THIS IS RIGHT
-    def W7_85(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_25(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_86(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_26(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_87(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_27(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_88(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_28(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_89(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_29(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_90(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_30(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_y(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-
-    ## Triplets 31-32: rotate by z on particle 1 from 11th & 12th W8 triplets ##
-    # TODO: THIS IS THE SAME AS TRIPLETS 19-20, CHECK IN W PACO TO MAKE SURE THIS IS RIGHT
-    def W7_91(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_31(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_92(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_32(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_93(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_33(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_94(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_34(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_95(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_35(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 8)
-    
-    def W7_96(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_36(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-        
-        return self.make_witness(w8, rotation, 8)
-    
-
-    #####################################
-    ## SET 9: EXCLUDES YZ & ZX
-    #####################################
-
-    ## Triplets 33-34: rotate by z on particle 2 from 9th & 10th W8 triplets ##
-    def W7_97(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_25(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_98(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_26(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_99(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_27(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_100(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_28(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_101(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_29(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_102(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_30(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(IDENTITY, R_z(delta))
-
-        return self.make_witness(w8, rotation, 9)
-    
-
-    ## Triplets 35-36: rotate by z on particle 1 from 7th & 8th W8 triplets ##
-    def W7_103(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_19(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_104(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_20(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_105(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_21(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_106(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_22(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_107(self, theta, alpha, beta):
-        delta = self.get_angle(theta, alpha, beta)
-        w8 = self.W8_23(theta, alpha, beta, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 9)
-    
-    def W7_108(self, theta, alpha, beta, gamma):
-        delta = self.get_angle(theta, alpha, beta, gamma)
-        w8 = self.W8_24(theta, alpha, beta, gamma, for_w7=True)
-        rotation = np.kron(R_z(delta), IDENTITY)
-
-        return self.make_witness(w8, rotation, 9)
-
-
-    def check_counts(self, set):
-        """
-        Checks to see that the necessary counts have been 
-        given when calculating a witness with experimental data
-
-        Params:
-        set - which set of 12 (9 total sets) the witness belongs to
-        """
-        # set 1 excludes xy & yx
-        if set == 1:    
-            self.check_all_counts(not_xy=True, not_yx=True)
-
-        # excludes xy & yz
-        if set == 2:
-            self.check_all_counts(not_xy=True, not_yz=True)
-
-        # excludes xy & zx
-        if set == 3:
-            self.check_all_counts(not_xy=True, not_zx=True)
-
-        # excludes xz & zx
-        if set == 4:
-            self.check_all_counts(not_xz=True, not_zx=True)
-
-        # excludes xz & yz
-        if set == 5:
-            self.check_all_counts(not_xz=True, not_yz=True)
-
-        # excludes xz & yx
-        if set == 6:
-            self.check_all_counts(not_xz=True, not_yx=True)
-
-        # excludes yx & zy
-        if set == 7:
-            self.check_all_counts(not_yx=True, not_zy=True)
-
-        # excludes yz & zy
-        if set == 8:
-            self.check_all_counts(not_yz=True, not_zy=True)
-
-        # excludes yz & zx
-        if set == 9:
-            self.check_all_counts(not_yz=True, not_zx=True)
-
-        else:
-            assert False, "Invalid set specified."
-
-    def W_stokes(self, idx, *params):
-        """
-        Returns the Stokes parameters for one W7
-
-        Params:
-            idx: the subscript of the W7 witness to get stokes for
-            params (theta, alpha, beta, gamma): the minimization parameters
-
-        NOTE: indexes start from 1 so that they correspond with
-        the witness subscripts
-        """
-
-        w7s = [self.W7_1, self.W7_2, self.W7_3, self.W7_4, self.W7_5, self.W7_6,
-               self.W7_7, self.W7_8, self.W7_9, self.W7_10, self.W7_11, self.W7_12,
-               self.W7_13, self.W7_14, self.W7_15, self.W7_16, self.W7_17, self.W7_18,
-               self.W7_19, self.W7_20, self.W7_21, self.W7_22, self.W7_23, self.W7_24,
-               self.W7_25, self.W7_26, self.W7_27, self.W7_28, self.W7_29, self.W7_30,
-               self.W7_31, self.W7_32, self.W7_33, self.W7_34, self.W7_35, self.W7_36,
-               self.W7_37, self.W7_38, self.W7_39, self.W7_40, self.W7_41, self.W7_42,
-               self.W7_43, self.W7_44, self.W7_45, self.W7_46, self.W7_47, self.W7_48,
-               self.W7_49, self.W7_50, self.W7_51, self.W7_52, self.W7_53, self.W7_54,
-               self.W7_55, self.W7_56, self.W7_57, self.W7_58, self.W7_59, self.W7_60,
-               self.W7_61, self.W7_62, self.W7_63, self.W7_64, self.W7_65, self.W7_66,
-               self.W7_67, self.W7_68, self.W7_69, self.W7_70, self.W7_71, self.W7_72,
-               self.W7_73, self.W7_74, self.W7_75, self.W7_76, self.W7_77, self.W7_78,
-               self.W7_79, self.W7_80, self.W7_81, self.W7_82, self.W7_83, self.W7_84,
-               self.W7_85, self.W7_86, self.W7_87, self.W7_88, self.W7_89, self.W7_90,
-               self.W7_91, self.W7_92, self.W7_93, self.W7_94, self.W7_95, self.W7_96,
-               self.W7_97, self.W7_98, self.W7_99, self.W7_100, self.W7_101, self.W7_102,
-               self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
-
-        # every 3rd witness needs gamma (NOTE: idx is one-indexed)
-        num_params = len(params)
-        if idx % 3 == 0:
-            assert num_params == 4, f"ERROR: {num_params} params given, expected 4"
-        else:
-            assert num_params == 3, f"ERROR: {num_params} params given, expected 3"
-
-        stokes = self.stokes_from_mtx(w7s[idx-1](*params))
-        return stokes
-    
-    def expec_val(self, idx, *params):
-        """
-        Returns the expectation value of one W7
-
-        Parameters:
-            idx: the subscript of the W7 witness to get expectation value for
-            params (theta, alpha, beta, gamma): the minimization parameters
-
-        NOTE: indexes start from 1 so that they correspond with
-        the witness subscripts
-        """
-        W_stokes = self.W_stokes(idx, *params)
-        return 0.25 * np.dot(self.stokes, W_stokes)
-
-    def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
-        """
-        If return_type is 'stokes':
-            Returns the Stokes parameters for each of the 108 W7 witnesses
-        If return_type is 'operators':
-            Returns all 108 W7 witnesses as operators
-        If return type is 'vals':
-            Returns the expectation values of the W7 witnesses with given parameters
-
-        NOTE: theta, alpha, beta, gamma must be given when returning vals
-        NOTE: Works the same as the get_witnesses function from W3, see docstring from that
-              function for more details
-        """
-        
-        if return_type == "operators":
-            return [self.W7_1, self.W7_2, self.W7_3, self.W7_4, self.W7_5, self.W7_6,
-               self.W7_7, self.W7_8, self.W7_9, self.W7_10, self.W7_11, self.W7_12,
-               self.W7_13, self.W7_14, self.W7_15, self.W7_16, self.W7_17, self.W7_18,
-               self.W7_19, self.W7_20, self.W7_21, self.W7_22, self.W7_23, self.W7_24,
-               self.W7_25, self.W7_26, self.W7_27, self.W7_28, self.W7_29, self.W7_30,
-               self.W7_31, self.W7_32, self.W7_33, self.W7_34, self.W7_35, self.W7_36,
-               self.W7_37, self.W7_38, self.W7_39, self.W7_40, self.W7_41, self.W7_42,
-               self.W7_43, self.W7_44, self.W7_45, self.W7_46, self.W7_47, self.W7_48,
-               self.W7_49, self.W7_50, self.W7_51, self.W7_52, self.W7_53, self.W7_54,
-               self.W7_55, self.W7_56, self.W7_57, self.W7_58, self.W7_59, self.W7_60,
-               self.W7_61, self.W7_62, self.W7_63, self.W7_64, self.W7_65, self.W7_66,
-               self.W7_67, self.W7_68, self.W7_69, self.W7_70, self.W7_71, self.W7_72,
-               self.W7_73, self.W7_74, self.W7_75, self.W7_76, self.W7_77, self.W7_78,
-               self.W7_79, self.W7_80, self.W7_81, self.W7_82, self.W7_83, self.W7_84,
-               self.W7_85, self.W7_86, self.W7_87, self.W7_88, self.W7_89, self.W7_90,
-               self.W7_91, self.W7_92, self.W7_93, self.W7_94, self.W7_95, self.W7_96,
-               self.W7_97, self.W7_98, self.W7_99, self.W7_100, self.W7_101, self.W7_102,
-               self.W7_103, self.W7_104, self.W7_105, self.W7_106, self.W7_107, self.W7_108]
-        
-        elif return_type == "stokes":
-            return [self.W_stokes(idx, theta, alpha, beta, gamma) for idx in range(1, 109)]
-        
-        elif return_type == "vals":
-            return [self.expec_val(idx, theta, alpha, beta, gamma) for idx in range(1, 109)]
-        
-        else: # invalid return_type
-            raise ValueError("Invalid return_type. Must be 'stokes', 'operators', or 'vals'.")
-
-class NavarroWitness(W7):
-    """
-    All witnesses defined in Paco's thesis (i.e. W3, W5, W7, and W8)
-
-    This class doesn't define any new witnesses, but just overrides
-    the get_witness function to include all witnesses
-
-    NOTE: all functions defined in W3, W5, W7, and W8 work here
-    """
-    def __init__(self, rho=None, counts=None):
-        super().__init__(rho=rho, counts=counts)
-
-    def get_witnesses(self, return_type, theta=None, alpha=None, beta=None, gamma=None):
-        """
-        Returns either all witnesses as operators or the expectation values 
-        of the witnesses with given parameters
-
-        NOTE: theta, alpha, beta, gamma must be given when vals is True
-        NOTE: Works the same as the get_witnesses function from W3, see docstring from that
-              function for more details
-        """
-
-        # TODO: Implementation of W7s needs to be finished before this works
-        return (W3.get_witnesses(self, return_type, theta) + 
-                W5.get_witnesses(self, return_type, theta, alpha, beta) +
-                W7.get_witnesses(self, return_type, theta, alpha, beta, gamma) + 
-                W8.get_witnesses(self, return_type, theta, alpha, beta, gamma))
 
 
 if __name__ == '__main__':

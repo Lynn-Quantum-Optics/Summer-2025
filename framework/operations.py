@@ -102,7 +102,6 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         num_guesses:     the number of random initial guesses to use in minimization
         NOTE: allowable witness classes are W3, W5, W7, W8, and NavarroWitness (which is all witnesses)
         NOTE: There are an additional 2 guesses at the bounds on top of the random guesses
-        TODO: The W7 witnesses have not been implemented yet
 
     Returns: (min_thetas, min_vals)
         min_thetas: a list of the thetas corresponding to the minimum expectation values
@@ -116,14 +115,11 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
     # Get necessary witnesses
     if type(witness_classes) != list:
-        num_classes = 1
         all_expec_vals = [[witness_classes(rho=rho, counts=counts).expec_val]]
     else:
         all_expec_vals = []
-        num_classes = 0
         for c in witness_classes:
             all_expec_vals.append(c(rho=rho, counts=counts).expec_val)
-            num_classes += 1
 
     def optimize(W_val, witness_idx, params, bounds):
         """
@@ -152,23 +148,20 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
 
 
     # Minimize each witness
-    # TODO: look into MULTITHREADING or multipooling
-    for class_idx, W_class in zip([3, 5, 7, 8], all_expec_vals):
+    # TODO: look into  multipooling package to parallelize guesses
+    for class_idx, W_class in zip([3, 5, 8], all_expec_vals):
         if class_idx == 3:
             num_witnesses = 6
             num_params = 1
         elif class_idx == 5:
             num_witnesses = 9
             num_params = 2
-        elif class_idx == 7:
-            num_witnesses = 108
-            num_params = 3
         else: #W8s
             num_witnesses = 36
             num_params = 3
         
-        for witness_idx in range(1, num_witnesses+1): # witnesses are indexed from 1
-            # Every third witness of the W5s, W7s, and W8s has one more parameter
+        for witness_idx in range(1, num_witnesses+1): # NOTE: witnesses are indexed from 1
+            # Every third witness of the W5s and W8s has one more parameter
             if class_idx != 3 and witness_idx % 3 == 0:
                 this_num_params = num_params + 1
             else:
