@@ -87,8 +87,6 @@ def rotate_m(m, n):
 ## MINIMIZATION
 ##################
 
-# TODO: REVIEW THIS BY LOOKING AT SUMMER 2024 PAPER DRAFT 
-#       FIGURES 4,5,6 (SOLID LINES) AND EQUATIONS 3,4,5
 def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
     """
     Calculates the minimum expectation values for each the witnesses specified
@@ -100,7 +98,7 @@ def minimize_witnesses(witness_classes, rho=None, counts=None, num_guesses=10):
         rho:             the density matrix
         counts:          experimental data 
         num_guesses:     the number of random initial guesses to use in minimization
-        NOTE: allowable witness classes are W3, W5, W7, W8, and NavarroWitness (which is all witnesses)
+        NOTE: allowable witness classes are W3, W5, and W8
         NOTE: There are an additional 2 guesses at the bounds on top of the random guesses
 
     Returns: (min_thetas, min_vals)
