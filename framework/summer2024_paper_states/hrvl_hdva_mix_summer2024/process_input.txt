@@ -5,3 +5,4 @@ HRVL_HDVA_mix
 cosHR_minussinVL cosHD_minussinVA
 0.65 0.35
 y
+1 2

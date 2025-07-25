@@ -5,3 +5,4 @@ HRiVL_HDiVA_mix
 cosHR_minusisinVL cosHA_minusisinVD
 0.65 0.35
 y
+1 2

@@ -1,6 +1,6 @@
 """
 Authors: Lev G., Ria H., Isabel G.
-Last updated: 6/24/2025
+Last updated: 7/17/2025
 
 This file reads and processes experimentally collected density matrices using functionality from
 states_and_witnesses.py and operations.py, so make sure to either copy those files to your directory
@@ -14,6 +14,10 @@ Check the data folder for a file called process_input.txt. Make sure to include 
 the file path.
 
 This file can be run on data files with the naming format "rho_(state_name-chi-trial).npy".
+
+This file is currently the only file that correctly handles data sets without the experimental chi~0 data
+while still plotting this point on the theoretical curves. It is meant as a "quick fix" while we decide how
+to handle data sets in which we want different ranges of theoretical vs experimental chis.
 """
 
 print("initializing...")
@@ -662,13 +666,19 @@ def make_plots_E0(dfname, fig_title):
     
     chi_ls = np.linspace(min(chi), max(chi), 1000)
 
+    chi_temp = chi[1:]
+    W3_min_E = W3_min_E[1:]
+    W5_min_E = W5_min_E[1:]
+    W3_unc = W3_unc[1:]
+    W5_unc = W5_unc[1:]
+
     ax.plot(chi_ls, sinsq(chi_ls, *popt_W3_T), label='$W_T^3$', color='navy')
     ax.plot(chi_ls, sinsq(chi_ls, *popt_W3_AT), label='$W_{AT}^3$', linestyle='dashed', color='blue')
-    ax.errorbar(chi, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue', markersize=10)
+    ax.errorbar(chi_temp, W3_min_E, yerr=W3_unc, fmt='o', color='slateblue', markersize=10)
 
     ax.plot(chi_ls, sinsq(chi_ls, *popt_W5_T), label="$W_T^5$", color='crimson')
     ax.plot(chi_ls, sinsq(chi_ls, *popt_W5_AT), label="$W_{AT}^5$", linestyle='dashed', color='red')
-    ax.errorbar(chi, W5_min_E, yerr=W5_unc, fmt='o', color='salmon', markersize=10)
+    ax.errorbar(chi_temp, W5_min_E, yerr=W5_unc, fmt='o', color='salmon', markersize=10)
 
     ax.set_ylabel('Witness value', fontsize=20)
     ax.tick_params(axis='both', which='major', labelsize=20)
@@ -779,14 +789,14 @@ def get_pure_rho(state, chi):
     if state == 'cosHV_minusisinVH':
         phi = np.cos(chi/2) * np.kron(H, V) - 1j * np.sin(chi/2) * np.kron(V, H)
 
-    if state == 'ha_negpi_3_vd':
+    if state == 'ha_negpi_3_vd_target':
         phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, D)
     
-    if state == 'ha_negpi_3_vd_expt':
-        theta = np.arctan(np.sqrt(.24/.26))
+    if state == 'ha_negpi_3_vd':
+        theta = np.arctan(np.sqrt(.244/.26))
         D = np.cos(theta) * H + np.sin(theta) * V
         A = np.sin(theta) * H - np.cos(theta) * V
-        phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j * np.pi/3) * np.sin(chi/2) * np.kron(V, D)
+        phi = np.cos(chi/2) * np.kron(H, A) + np.exp(-1j*.99) * np.sin(chi/2) * np.kron(V, D)
     
     # create rho and return it
     rho = phi @ phi.conj().T
